@@ -1,9 +1,5 @@
 # AlgoVisual 📚
 
-[![AlgoVisual CI](https://github.com/sandipanxd/algovisual/actions/workflows/ci.yml/badge.svg)](https://github.com/sandipanxd/algovisual/actions)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-
-> **Summer of Code Project Description:**  
 > AlgoVisual is a zero-configuration, interactive computer science algorithm and data structure visualizer playground built on Express and EJS. Designed specifically to demystify complex computations for beginners, it allows students to run, step, pause, and control the speed of algorithms while watching synced pseudocode line-by-line highlights alongside real-time visual array elements and descriptive narration logs. By isolating algorithm code into lightweight, browser-native ES6 modules, the platform offers a seamless sandbox that invites open-source newcomers to contribute new visualizations with zero build tool complexity.
 
 ---
