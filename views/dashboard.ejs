@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoVisual - Algorithm Telemetry Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-x-hidden">
+  
+  <div class="max-w-4xl w-full py-8">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div class="inline-block relative mb-3">
+        <span class="text-4xl filter drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">🎛️</span>
+      </div>
+      <h1 class="text-4xl font-extrabold tracking-wider font-technical uppercase text-[#00e1d9] drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+        AlgoVisual Telemetry Console
+      </h1>
+      <p class="text-slate-400 mt-2 font-light tracking-widest text-xs uppercase">
+        Interactive cs state-machine animation engine & analysis deck
+      </p>
+    </div>
+
+    <!-- Algorithm Categories Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <!-- Sorting Section -->
+      <div class="cyber-panel p-6 sm:p-8 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-3">
+          <h2 class="text-md font-bold text-slate-200 tracking-wider uppercase font-technical flex items-center gap-2">
+            <span class="text-[#00e1d9]">▶</span> MODULE 01: Sorting Systems
+          </h2>
+          <span class="text-[10px] font-technical bg-slate-900 border border-slate-800 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">ACTIVE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-light leading-relaxed">Sequence rearranger sub-routines. Telemetry evaluates swap iterations, element comparisons, and value migrations.</p>
+        
+        <div class="space-y-3 pt-2">
+          <!-- Bubble Sort Link -->
+          <a href="/visualizer?algo=bubbleSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="led-indicator led-active"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 font-technical group-hover:text-white">Bubble Sort</h3>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1 font-light">Adjacent element comparative sweep logic.</p>
+              </div>
+              <span class="text-slate-600 group-hover:text-[#00e1d9] group-hover:translate-x-1 transition duration-200 font-technical text-xs font-bold">LOAD ➔</span>
+            </div>
+          </a>
+
+          <!-- Selection Sort Placeholder -->
+          <div class="p-4 border border-slate-900/60 bg-slate-950/10 rounded flex justify-between items-center opacity-50 relative">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="led-indicator led-standby"></span>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-technical">Selection Sort</h3>
+              </div>
+              <p class="text-[10px] text-slate-600 mt-1 font-light">Locate local extrema and index shift updates.</p>
+            </div>
+            <span class="text-[9px] font-technical bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded border border-slate-800">STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Searching Section -->
+      <div class="cyber-panel p-6 sm:p-8 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-3">
+          <h2 class="text-md font-bold text-slate-200 tracking-wider uppercase font-technical flex items-center gap-2">
+            <span class="text-[#00e1d9]">▶</span> MODULE 02: Searching Systems
+          </h2>
+          <span class="text-[10px] font-technical bg-slate-900 border border-slate-800 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">ACTIVE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-light leading-relaxed">Target value location routines. Telemetry evaluates search-space boundaries, division steps, and matches.</p>
+        
+        <div class="space-y-3 pt-2">
+          <!-- Binary Search Link -->
+          <a href="/visualizer?algo=binarySearch" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="led-indicator led-active"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 font-technical group-hover:text-white">Binary Search</h3>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1 font-light">Segment bifurcation boundary lookup sweep.</p>
+              </div>
+              <span class="text-slate-600 group-hover:text-[#00e1d9] group-hover:translate-x-1 transition duration-200 font-technical text-xs font-bold">LOAD ➔</span>
+            </div>
+          </a>
+
+          <!-- Linear Search Placeholder -->
+          <div class="p-4 border border-slate-900/60 bg-slate-950/10 rounded flex justify-between items-center opacity-50 relative">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="led-indicator led-standby"></span>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-technical">Linear Search</h3>
+              </div>
+              <p class="text-[10px] text-slate-600 mt-1 font-light">Sequential element evaluation index scans.</p>
+            </div>
+            <span class="text-[9px] font-technical bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded border border-slate-800">STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+
+  </div>
+</body>
+</html>

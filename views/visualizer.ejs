@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithm Playground - AlgoVisual</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen p-4 sm:p-6 relative overflow-x-hidden">
+  
+  <div class="max-w-7xl mx-auto flex flex-col min-h-[90vh]">
+    
+    <!-- Top Nav bar -->
+    <div class="flex justify-between items-center mb-6">
+      <a href="/" class="tech-btn px-4 py-2 rounded text-xs transition duration-200 flex items-center gap-2">
+        <span>⬅</span> Back to Dashboard
+      </a>
+      <div class="text-right">
+        <h2 class="text-[10px] text-slate-500 uppercase tracking-widest font-technical">Selected System Module</h2>
+        <h1 id="algo-title" class="text-lg font-bold text-[#00e1d9] font-technical uppercase">Loading...</h1>
+      </div>
+    </div>
+
+    <!-- Main Visualizer Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-stretch">
+      
+      <!-- Canvas & Timeline (2 columns wide on large screens) -->
+      <div class="lg:col-span-2 flex flex-col space-y-6">
+        
+        <!-- Canvas Card -->
+        <div class="cyber-panel p-6 sm:p-8 flex-1 flex flex-col justify-between min-h-[400px]">
+          <!-- Description Header -->
+          <div class="border-b border-slate-900 pb-3 mb-4 flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-technical text-slate-500 uppercase tracking-wider">Module Specification</span>
+              <p id="algo-desc" class="text-slate-400 text-xs font-light leading-relaxed mt-1"></p>
+            </div>
+          </div>
+
+          <!-- Main Visualizer Viewport (Bars/Tape container) -->
+          <div class="flex-1 flex items-center justify-center border border-slate-900 bg-slate-950/30 rounded p-4 relative overflow-hidden">
+            <!-- Grid lines inside canvas -->
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/20 pointer-events-none z-0"></div>
+            <div id="bars-container" class="relative z-10 w-full h-full flex items-center justify-center">
+              <!-- Dynamically populated elements go here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Card -->
+        <div class="cyber-panel p-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <!-- Playback Buttons -->
+          <div class="flex items-center gap-3">
+            <button id="btn-prev" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Backward">
+              <span>⏮</span> Step Back
+            </button>
+            <button id="btn-play" class="tech-btn tech-btn-primary px-6 py-3 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+              <span>▶</span> Play
+            </button>
+            <button id="btn-next" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Forward">
+              <span>⏭</span> Step Next
+            </button>
+          </div>
+
+          <!-- Speed Slider -->
+          <div class="flex items-center gap-3 w-full sm:w-auto max-w-[200px]">
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-technical">Speed:</span>
+            <input type="range" id="slider-speed" min="0.5" max="3.0" step="0.25" value="1.0" class="tech-slider cursor-pointer">
+            <span id="text-speed" class="text-xs text-[#00e1d9] font-bold font-technical">1.0x</span>
+          </div>
+
+          <!-- Custom Inputs -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
+              <input type="text" id="input-custom" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[120px] font-technical text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-0" placeholder="e.g. 5,12,8,25">
+              
+              <div id="container-target-input" class="hidden flex items-center border-l border-slate-800 pl-2 gap-1.5">
+                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical">Target</span>
+                <input type="text" id="input-target" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[35px] font-technical text-slate-200 text-center focus:outline-none focus:ring-0" placeholder="34" value="34">
+              </div>
+            </div>
+            <button id="btn-apply-input" class="tech-btn text-xs px-4 py-2.5 rounded font-bold uppercase tracking-wider">
+              Apply
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Registers / Complexity / Code (1 column wide) -->
+      <div class="flex flex-col space-y-6">
+        
+        <!-- Engine Status & Diagnostics HUD -->
+        <div class="cyber-panel p-4 flex justify-between items-center bg-[#090d15]/90">
+          <div>
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Engine State</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="status-led" class="led-indicator led-standby"></span>
+              <span id="status-text" class="text-xs font-technical font-bold text-slate-200">READY</span>
+            </div>
+          </div>
+          <div class="text-right border-l border-slate-900 pl-4">
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Active Step</span>
+            <span id="stat-step" class="text-sm font-technical font-bold text-[#00e1d9]">1 / 1</span>
+          </div>
+        </div>
+
+        <!-- Telemetry & Variable HUD -->
+        <div class="cyber-panel p-4 flex flex-col">
+          <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-900">
+            <span class="text-xs font-bold text-slate-200 font-technical uppercase tracking-wider">State Registers HUD</span>
+            <span class="text-[9px] text-slate-500 font-technical">TELEMETRY</span>
+          </div>
+          <div class="max-h-[140px] overflow-y-auto">
+            <table class="hud-table">
+              <thead>
+                <tr>
+                  <th>Register</th>
+                  <th class="text-right">Value</th>
+                </tr>
+              </thead>
+              <tbody id="hud-variables-body">
+                <!-- Dynamically populated variables go here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Complexity and Stats HUD -->
+        <div class="cyber-panel p-4 grid grid-cols-2 gap-4 bg-[#090d15]/50">
+          <div class="col-span-2 border-b border-slate-900 pb-2 flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-200 font-technical uppercase tracking-wider">Performance Analytics</span>
+            <span class="text-[9px] text-slate-500 font-technical">HUD</span>
+          </div>
+          <div class="bg-slate-950/40 p-2.5 rounded border border-slate-900">
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Comparisons</span>
+            <span id="stat-comparisons" class="text-lg font-technical font-bold text-[#f59e0b]">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-2.5 rounded border border-slate-900">
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Swaps / Writes</span>
+            <span id="stat-swaps" class="text-lg font-technical font-bold text-[#f43f5e]">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-2.5 rounded border border-slate-900">
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Complexity (Time)</span>
+            <span id="stat-complexity-time" class="text-xs font-technical font-bold text-[#10b981] block mt-1">O(n)</span>
+          </div>
+          <div class="bg-slate-950/40 p-2.5 rounded border border-slate-900">
+            <span class="text-[9px] text-slate-500 font-technical uppercase block">Complexity (Space)</span>
+            <span id="stat-complexity-space" class="text-xs font-technical font-bold text-[#10b981] block mt-1">O(1)</span>
+          </div>
+        </div>
+
+        <!-- Explanation/Code Card -->
+        <div class="cyber-panel overflow-hidden flex flex-col flex-1 min-h-[300px]">
+          <!-- Heading -->
+          <div class="bg-slate-950/70 px-4 py-3 border-b border-slate-900 flex justify-between items-center">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest font-technical">Instruction Set</h3>
+            <span class="text-[9px] text-slate-500 font-technical">PSEUDOCODE</span>
+          </div>
+          
+          <!-- Code view -->
+          <div id="pseudocode-container" class="flex-1 py-3 overflow-y-auto bg-slate-950/10">
+            <!-- Pseudocode lines go here -->
+          </div>
+
+          <!-- Narration Text Block -->
+          <div class="p-4 bg-[#090d15] border-t border-slate-900 border-b border-slate-900">
+            <p id="narrative-text" class="text-xs font-medium text-slate-300 leading-relaxed min-h-[44px]"></p>
+          </div>
+
+          <!-- Narrative Log Console -->
+          <div class="flex flex-col h-[140px] bg-slate-950/50">
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-900 flex justify-between items-center">
+              <span class="text-[10px] font-bold text-slate-400 font-technical uppercase tracking-wider">Execution Debug Logs</span>
+              <span class="text-[9px] text-slate-600 font-technical">FIFO_QUEUE</span>
+            </div>
+            <div id="console-log" class="flex-1 overflow-y-auto p-3 space-y-1">
+              <!-- Append history steps log -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Load player as ES6 module -->
+  <script type="module">
+    import { initPlayer } from '/js/player.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initPlayer('<%= algo %>');
+    });
+  </script>
+</body>
+</html>
