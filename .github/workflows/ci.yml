@@ -2,9 +2,9 @@ name: AlgoVisual CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ development ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ development ]
 
 jobs:
   test:
