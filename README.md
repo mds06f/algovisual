@@ -72,3 +72,7 @@ npm test
 ## Contributing
 
 We love contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) to get started on setting up your local workspace and implementing a new algorithm module. Check out [ISSUES.md](ISSUES.md) for a list of "Good First Issues" awaiting developers.
+
+## Code of Conduct
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the guidelines for contributing to this project.
