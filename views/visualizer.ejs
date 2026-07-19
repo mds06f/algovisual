@@ -77,11 +77,20 @@
             <span id="step-counter-text" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-3 rounded select-none min-w-[95px] text-center">Step 0 / 0</span>
           </div>
 
-          <!-- Speed Slider -->
-          <div class="flex items-center gap-3 w-full sm:w-auto max-w-[200px]">
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-technical">Speed:</span>
-            <input type="range" id="slider-speed" min="0.5" max="3.0" step="0.25" value="1.0" class="tech-slider cursor-pointer">
-            <span id="text-speed" class="text-xs text-[#00e1d9] font-bold font-technical">1.0x</span>
+          <!-- Speed Slider + Presets -->
+          <div class="flex flex-col gap-2 w-full sm:w-auto">
+            <div class="flex items-center gap-3">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-technical">Speed:</span>
+              <input type="range" id="slider-speed" min="0.5" max="3.0" step="0.25" value="1.0" class="tech-slider cursor-pointer">
+              <span id="text-speed" class="text-xs text-[#00e1d9] font-bold font-technical">1.0x</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] text-slate-600 font-technical uppercase tracking-wider">Presets:</span>
+              <button data-speed="0.5" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">0.5x</button>
+              <button data-speed="1.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold speed-preset-active">1.0x</button>
+              <button data-speed="2.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">2.0x</button>
+              <button data-speed="5.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">5.0x</button>
+            </div>
           </div>
 
           <!-- Custom Inputs -->
