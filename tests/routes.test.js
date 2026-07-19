@@ -54,4 +54,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('dijkstra')");
   });
+
+  test('GET /visualizer?algo=minMaxFinder should load visualizer with minMaxFinder successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=minMaxFinder');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('minMaxFinder')");
+  });
 });
