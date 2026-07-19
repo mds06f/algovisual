@@ -95,4 +95,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('mergeSort')");
   });
+
+  test('GET /visualizer?algo=aStar should load visualizer with aStar successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=aStar');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('aStar')");
+  });
 });
