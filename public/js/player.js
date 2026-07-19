@@ -160,6 +160,9 @@ function renderSnapshot(index) {
   // 5. Update registers and metrics HUDs
   updateTelemetryHUD(snapshot);
 
+  // 8. Render call stack if snapshot carries frame data
+  updateCallStack(snapshot);
+
   // 6. Update disabled states of timeline buttons
   prevBtn.disabled = index === 0;
   nextBtn.disabled = index === snapshots.length - 1;
@@ -377,6 +380,35 @@ function updateTelemetryHUD(snapshot) {
   if (swapsEl) swapsEl.textContent = snapshot.stats ? snapshot.stats.swaps : 0;
   if (complexityTimeEl) complexityTimeEl.textContent = snapshot.stats ? snapshot.stats.complexity.time : 'N/A';
   if (complexitySpaceEl) complexitySpaceEl.textContent = snapshot.stats ? snapshot.stats.complexity.space : 'N/A';
+}
+
+// Renders the call stack HUD panel; shows/hides panel based on callStack presence
+function updateCallStack(snapshot) {
+  const panel = document.getElementById('callstack-panel');
+  const container = document.getElementById('callstack-container');
+  if (!panel || !container) return;
+
+  const frames = snapshot.callStack;
+  if (!frames || frames.length === 0) {
+    panel.classList.add('hidden');
+    panel.classList.remove('flex');
+    container.innerHTML = '';
+    return;
+  }
+
+  panel.classList.remove('hidden');
+  panel.classList.add('flex');
+  container.innerHTML = '';
+
+  // Render frames bottom (oldest) to top (newest)
+  // flex-col-reverse means last item visually appears on top
+  frames.forEach((frame, i) => {
+    const chip = document.createElement('div');
+    const isTop = i === frames.length - 1;
+    chip.className = `callstack-frame${isTop ? ' active' : ''}`;
+    chip.textContent = frame;
+    container.appendChild(chip);
+  });
 }
 
 function updateStatusHUD(status) {
