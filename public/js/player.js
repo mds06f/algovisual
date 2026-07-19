@@ -53,7 +53,17 @@ export async function initPlayer(algoName) {
 
     // Show/hide target input depending on algorithm category
     const targetInputContainer = document.getElementById('container-target-input');
+    const customInputsContainer = document.getElementById('container-custom-inputs');
     let initialTarget = undefined;
+    
+    if (customInputsContainer) {
+      if (currentAlgorithm.category === 'Pathfinding') {
+        customInputsContainer.classList.add('hidden');
+      } else {
+        customInputsContainer.classList.remove('hidden');
+      }
+    }
+
     if (targetInputContainer) {
       if (currentAlgorithm.category === 'Searching') {
         targetInputContainer.classList.remove('hidden');
@@ -131,7 +141,29 @@ function renderSnapshot(index) {
 function renderBars(arr, highlights, pointers, category) {
   barsContainer.innerHTML = '';
   
-  if (category === 'Searching') {
+  if (category === 'Pathfinding') {
+    barsContainer.className = "grid-visualizer";
+    
+    arr.forEach((cellType, index) => {
+      const cell = document.createElement('div');
+      let cellClass = 'grid-cell';
+      if (cellType === 1) cellClass += ' start';
+      else if (cellType === 2) cellClass += ' end';
+      else if (cellType === 3) cellClass += ' wall';
+      else if (cellType === 4) cellClass += ' visited';
+      else if (cellType === 5) cellClass += ' path';
+      
+      cell.className = cellClass;
+      
+      if (cellType === 1) {
+        cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">S</span>';
+      } else if (cellType === 2) {
+        cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
+      }
+      
+      barsContainer.appendChild(cell);
+    });
+  } else if (category === 'Searching') {
     // Apply array-tape layout styles
     barsContainer.className = "array-tape";
     

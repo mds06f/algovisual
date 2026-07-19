@@ -47,4 +47,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('insertionSort')");
   });
+
+  test('GET /visualizer?algo=dijkstra should load visualizer with dijkstra successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=dijkstra');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('dijkstra')");
+  });
 });
