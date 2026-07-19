@@ -778,3 +778,36 @@ select.tech-input option {
   background-color: rgba(124, 58, 237, 0.2);
   border-color: rgba(124, 58, 237, 0.4);
 }
+
+/* Sandbox Editor text area custom styling */
+#sandbox-textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+#sandbox-textarea::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+#sandbox-textarea::-webkit-scrollbar-track {
+  background: rgba(9, 13, 21, 0.4);
+}
+#sandbox-textarea::-webkit-scrollbar-thumb {
+  background: var(--color-panel-border);
+  border-radius: 3px;
+}
+#sandbox-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-cyan);
+}
+
+.light-theme #sandbox-textarea {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+.light-theme #sandbox-container div {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
