@@ -68,4 +68,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('reverseArray')");
   });
+
+  test('GET /visualizer?algo=quickSort should load visualizer with quickSort successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=quickSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('quickSort')");
+  });
 });
