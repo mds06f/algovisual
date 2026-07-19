@@ -439,6 +439,35 @@ function bindEvents() {
       pauseAnimation();
       startAnimation();
     }
+
+    // Sync active state on preset buttons
+    document.querySelectorAll('.speed-preset-btn').forEach(btn => {
+      const btnRate = parseFloat(btn.dataset.speed);
+      btn.classList.toggle('speed-preset-active', btnRate === rate);
+    });
+  });
+
+  // Speed preset buttons
+  document.querySelectorAll('.speed-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rate = parseFloat(btn.dataset.speed);
+
+      // Clamp to slider range (0.5 - 3.0); 5x is an extended preset beyond slider
+      const sliderRate = Math.min(rate, 3.0);
+      speedSlider.value = sliderRate;
+      speedDelay = Math.round(600 / rate);
+      speedValueText.textContent = `${rate}x`;
+
+      // Toggle active highlight
+      document.querySelectorAll('.speed-preset-btn').forEach(b => b.classList.remove('speed-preset-active'));
+      btn.classList.add('speed-preset-active');
+
+      // Restart animation if playing
+      if (isPlaying) {
+        pauseAnimation();
+        startAnimation();
+      }
+    });
   });
 
   // Apply custom array input
