@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithm Comparison Board - AlgoVisual</title>
+  <meta name="description" content="Compare two sorting algorithms side-by-side with synchronized playback and comparative telemetry counters.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.classList.add('light-theme');
+    }
+  </script>
+  <style>
+    .compare-bar-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 160px;
+      width: 100%;
+      gap: 3px;
+    }
+    .compare-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      height: 100%;
+      position: relative;
+    }
+    .compare-bar {
+      width: 100%;
+      border-radius: 2px 2px 0 0;
+      transition: height 0.15s ease;
+    }
+    .compare-bar.normal  { background: linear-gradient(to top, #1e3a5f, #2563eb44); border: 1px solid #2563eb44; }
+    .compare-bar.highlight { background: linear-gradient(to top, rgba(6,182,212,0.6), rgba(6,182,212,0.2)); border: 1px solid rgba(6,182,212,0.8); box-shadow: 0 0 8px rgba(6,182,212,0.5); }
+    .compare-bar.completed { background: linear-gradient(to top, rgba(34,197,94,0.5), rgba(34,197,94,0.15)); border: 1px solid rgba(34,197,94,0.6); }
+    .stat-pill {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .algo-selector {
+      background: #090d15;
+      border: 1px solid #1e293b;
+      color: #94a3b8;
+      font-size: 11px;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+    .algo-selector:focus { outline: none; border-color: rgba(6,182,212,0.5); }
+    .winner-badge {
+      background: linear-gradient(135deg, rgba(6,182,212,0.3), rgba(6,182,212,0.1));
+      border: 1px solid rgba(6,182,212,0.6);
+      color: #00e1d9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 relative overflow-x-hidden">
+
+  <!-- Nav bar -->
+  <div class="flex justify-between items-center mb-6 max-w-7xl mx-auto">
+    <a href="/" class="tech-btn text-[10px] px-3 py-2 rounded font-technical font-bold flex items-center gap-2">
+      ← Dashboard
+    </a>
+    <h1 class="text-sm font-bold uppercase tracking-widest font-technical text-[#00e1d9]">⚔ Algorithm Comparison Board</h1>
+    <button id="theme-toggle" class="tech-btn p-2 rounded text-xs flex items-center justify-center w-8 h-8" title="Toggle Theme">
+      <span id="theme-toggle-icon">☀️</span>
+    </button>
+  </div>
+
+  <!-- Algo pickers + sync controls -->
+  <div class="max-w-7xl mx-auto mb-5 flex flex-wrap items-center justify-center gap-4">
+    <div class="cyber-panel px-5 py-3 flex flex-wrap items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-[9px] text-slate-500 font-technical uppercase tracking-widest">Algorithm A:</span>
+        <select id="select-algo-a" class="algo-selector">
+          <option value="bubbleSort"   <%= algoA === 'bubbleSort'   ? 'selected' : '' %>>Bubble Sort</option>
+          <option value="selectionSort" <%= algoA === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+          <option value="insertionSort" <%= algoA === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+          <option value="quickSort"    <%= algoA === 'quickSort'    ? 'selected' : '' %>>Quick Sort</option>
+        </select>
+      </div>
+      <span class="text-slate-600 font-technical text-lg font-bold">⚔</span>
+      <div class="flex items-center gap-2">
+        <span class="text-[9px] text-slate-500 font-technical uppercase tracking-widest">Algorithm B:</span>
+        <select id="select-algo-b" class="algo-selector">
+          <option value="bubbleSort"   <%= algoB === 'bubbleSort'   ? 'selected' : '' %>>Bubble Sort</option>
+          <option value="selectionSort" <%= algoB === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+          <option value="insertionSort" <%= algoB === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+          <option value="quickSort"    <%= algoB === 'quickSort'    ? 'selected' : '' %>>Quick Sort</option>
+        </select>
+      </div>
+      <button id="btn-load-compare" class="tech-btn tech-btn-primary text-[10px] px-4 py-2 rounded font-technical font-bold uppercase tracking-wider">
+        Load
+      </button>
+    </div>
+
+    <!-- Playback controls -->
+    <div class="cyber-panel px-5 py-3 flex items-center gap-3">
+      <button id="btn-compare-prev" class="tech-btn p-2 rounded text-xs" title="Step Back">⏮</button>
+      <button id="btn-compare-play" class="tech-btn tech-btn-primary px-5 py-2 rounded text-xs font-bold uppercase tracking-wider">▶ Play</button>
+      <button id="btn-compare-next" class="tech-btn p-2 rounded text-xs" title="Step Forward">⏭</button>
+      <div class="flex items-center gap-2 ml-2">
+        <span class="text-[9px] text-slate-500 font-technical uppercase">Speed:</span>
+        <input id="compare-speed-slider" type="range" min="0.5" max="3.0" step="0.25" value="1.0" class="tech-slider w-20 cursor-pointer">
+        <span id="compare-speed-text" class="text-[10px] text-[#00e1d9] font-bold font-technical">1.0x</span>
+      </div>
+      <span id="compare-step-text" class="text-[10px] text-slate-400 font-technical border border-slate-900 bg-slate-950 px-2 py-1.5 rounded min-w-[80px] text-center">Step 0 / 0</span>
+    </div>
+  </div>
+
+  <!-- Side-by-side panels -->
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Panel A -->
+    <div class="cyber-panel p-5 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+        <h2 id="title-a" class="text-xs font-bold uppercase tracking-wider font-technical text-slate-200">—</h2>
+        <span id="winner-badge-a" class="hidden winner-badge">⚡ Fewer Steps</span>
+      </div>
+      <!-- Bars canvas A -->
+      <div class="bg-slate-950/30 border border-slate-900 rounded p-3 flex items-end justify-center h-[180px]">
+        <div id="bars-a" class="compare-bar-container"></div>
+      </div>
+      <!-- Stats A -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Comparisons</div>
+          <div id="stat-a-comps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Swaps</div>
+          <div id="stat-a-swaps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Steps</div>
+          <div id="stat-a-steps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+      </div>
+      <!-- Narration A -->
+      <p id="narration-a" class="text-[10px] text-slate-400 font-light leading-relaxed min-h-[32px]"></p>
+    </div>
+
+    <!-- Panel B -->
+    <div class="cyber-panel p-5 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+        <h2 id="title-b" class="text-xs font-bold uppercase tracking-wider font-technical text-slate-200">—</h2>
+        <span id="winner-badge-b" class="hidden winner-badge">⚡ Fewer Steps</span>
+      </div>
+      <!-- Bars canvas B -->
+      <div class="bg-slate-950/30 border border-slate-900 rounded p-3 flex items-end justify-center h-[180px]">
+        <div id="bars-b" class="compare-bar-container"></div>
+      </div>
+      <!-- Stats B -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Comparisons</div>
+          <div id="stat-b-comps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Swaps</div>
+          <div id="stat-b-swaps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/50 border border-slate-900 rounded p-2 text-center">
+          <div class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Steps</div>
+          <div id="stat-b-steps" class="text-sm font-bold text-[#00e1d9] font-technical mt-1">0</div>
+        </div>
+      </div>
+      <!-- Narration B -->
+      <p id="narration-b" class="text-[10px] text-slate-400 font-light leading-relaxed min-h-[32px]"></p>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // ── State ─────────────────────────────────────────────────────────────────
+    let snapshotsA = [], snapshotsB = [];
+    let currentIndex = 0;
+    let isPlaying = false;
+    let playInterval = null;
+    let speedDelay = 600;
+
+    const sharedArray = [23, 45, 12, 56, 34, 18, 9, 41];
+
+    // ── DOM ───────────────────────────────────────────────────────────────────
+    const barsA        = document.getElementById('bars-a');
+    const barsB        = document.getElementById('bars-b');
+    const titleA       = document.getElementById('title-a');
+    const titleB       = document.getElementById('title-b');
+    const narrationA   = document.getElementById('narration-a');
+    const narrationB   = document.getElementById('narration-b');
+    const statAComps   = document.getElementById('stat-a-comps');
+    const statASwaps   = document.getElementById('stat-a-swaps');
+    const statASteps   = document.getElementById('stat-a-steps');
+    const statBComps   = document.getElementById('stat-b-comps');
+    const statBSwaps   = document.getElementById('stat-b-swaps');
+    const statBSteps   = document.getElementById('stat-b-steps');
+    const playBtn      = document.getElementById('btn-compare-play');
+    const prevBtn      = document.getElementById('btn-compare-prev');
+    const nextBtn      = document.getElementById('btn-compare-next');
+    const speedSlider  = document.getElementById('compare-speed-slider');
+    const speedText    = document.getElementById('compare-speed-text');
+    const stepText     = document.getElementById('compare-step-text');
+    const selectAlgoA  = document.getElementById('select-algo-a');
+    const selectAlgoB  = document.getElementById('select-algo-b');
+    const loadBtn      = document.getElementById('btn-load-compare');
+    const winnerA      = document.getElementById('winner-badge-a');
+    const winnerB      = document.getElementById('winner-badge-b');
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function renderBars(container, arr, highlights, isFinished) {
+      container.innerHTML = '';
+      const maxVal = Math.max(...arr, 1);
+      arr.forEach((val, i) => {
+        const col = document.createElement('div');
+        col.className = 'compare-bar-col';
+        let barClass = 'compare-bar normal';
+        if (isFinished) barClass = 'compare-bar completed';
+        else if (highlights.includes(i)) barClass = 'compare-bar highlight';
+        const heightPct = (val / maxVal) * 100;
+        col.innerHTML = `<div class="${barClass}" style="height:${heightPct}%"></div>`;
+        container.appendChild(col);
+      });
+    }
+
+    function renderStep(index) {
+      const maxLen = Math.max(snapshotsA.length, snapshotsB.length);
+      const isFinished = index >= maxLen - 1;
+
+      const snapA = snapshotsA[Math.min(index, snapshotsA.length - 1)];
+      const snapB = snapshotsB[Math.min(index, snapshotsB.length - 1)];
+
+      if (snapA) {
+        renderBars(barsA, snapA.array, snapA.highlights, isFinished && index >= snapshotsA.length - 1);
+        narrationA.textContent = snapA.description;
+        statAComps.textContent = snapA.stats?.comparisons ?? 0;
+        statASwaps.textContent = snapA.stats?.swaps ?? 0;
+        statASteps.textContent = `${Math.min(index + 1, snapshotsA.length)} / ${snapshotsA.length}`;
+      }
+      if (snapB) {
+        renderBars(barsB, snapB.array, snapB.highlights, isFinished && index >= snapshotsB.length - 1);
+        narrationB.textContent = snapB.description;
+        statBComps.textContent = snapB.stats?.comparisons ?? 0;
+        statBSwaps.textContent = snapB.stats?.swaps ?? 0;
+        statBSteps.textContent = `${Math.min(index + 1, snapshotsB.length)} / ${snapshotsB.length}`;
+      }
+
+      // Show winner badge when both are done
+      if (index >= maxLen - 1) {
+        winnerA.classList.toggle('hidden', snapshotsA.length >= snapshotsB.length);
+        winnerB.classList.toggle('hidden', snapshotsB.length >= snapshotsA.length);
+      } else {
+        winnerA.classList.add('hidden');
+        winnerB.classList.add('hidden');
+      }
+
+      stepText.textContent = `Step ${index + 1} / ${maxLen}`;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index >= maxLen - 1;
+    }
+
+    // ── Animation ─────────────────────────────────────────────────────────────
+    function startAnimation() {
+      isPlaying = true;
+      playBtn.innerHTML = '⏸ Pause';
+      const maxLen = Math.max(snapshotsA.length, snapshotsB.length);
+      playInterval = setInterval(() => {
+        if (currentIndex < maxLen - 1) {
+          currentIndex++;
+          renderStep(currentIndex);
+        } else {
+          pauseAnimation();
+        }
+      }, speedDelay);
+    }
+
+    function pauseAnimation() {
+      isPlaying = false;
+      clearInterval(playInterval);
+      playBtn.innerHTML = '▶ Play';
+    }
+
+    // ── Load algorithms ───────────────────────────────────────────────────────
+    async function loadAlgorithms(algoAName, algoBName) {
+      pauseAnimation();
+      currentIndex = 0;
+      winnerA.classList.add('hidden');
+      winnerB.classList.add('hidden');
+
+      const [modA, modB] = await Promise.all([
+        import(`/algorithms/${algoAName}.js`),
+        import(`/algorithms/${algoBName}.js`)
+      ]);
+
+      const algA = modA.algorithm;
+      const algB = modB.algorithm;
+
+      titleA.textContent = algA.name;
+      titleB.textContent = algB.name;
+
+      snapshotsA = algA.generator([...sharedArray]);
+      snapshotsB = algB.generator([...sharedArray]);
+
+      renderStep(0);
+    }
+
+    // ── Events ────────────────────────────────────────────────────────────────
+    playBtn.addEventListener('click', () => {
+      if (isPlaying) pauseAnimation(); else startAnimation();
+    });
+    prevBtn.addEventListener('click', () => {
+      pauseAnimation();
+      if (currentIndex > 0) { currentIndex--; renderStep(currentIndex); }
+    });
+    nextBtn.addEventListener('click', () => {
+      pauseAnimation();
+      const maxLen = Math.max(snapshotsA.length, snapshotsB.length);
+      if (currentIndex < maxLen - 1) { currentIndex++; renderStep(currentIndex); }
+    });
+    speedSlider.addEventListener('input', (e) => {
+      const rate = parseFloat(e.target.value);
+      speedDelay = Math.round(600 / rate);
+      speedText.textContent = `${rate}x`;
+      if (isPlaying) { pauseAnimation(); startAnimation(); }
+    });
+    loadBtn.addEventListener('click', () => {
+      loadAlgorithms(selectAlgoA.value, selectAlgoB.value);
+    });
+
+    // Theme toggle
+    const toggleBtn  = document.getElementById('theme-toggle');
+    const toggleIcon = document.getElementById('theme-toggle-icon');
+    const updateIcon = () => {
+      if (toggleIcon) toggleIcon.textContent = document.documentElement.classList.contains('light-theme') ? '🌙' : '☀️';
+    };
+    updateIcon();
+    if (toggleBtn) toggleBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-theme');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      updateIcon();
+    });
+
+    // ── Initial load ──────────────────────────────────────────────────────────
+    await loadAlgorithms('<%= algoA %>', '<%= algoB %>');
+  </script>
+</body>
+</html>

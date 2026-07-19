@@ -19,6 +19,12 @@ app.get('/visualizer', (req, res) => {
   res.render('visualizer', { algo: algo || 'bubbleSort' });
 });
 
+app.get('/compare', (req, res) => {
+  const algoA = req.query.algoA || 'bubbleSort';
+  const algoB = req.query.algoB || 'selectionSort';
+  res.render('compare', { algoA, algoB });
+});
+
 // Avoid app.listen during Jest test runs
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
