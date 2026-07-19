@@ -20,6 +20,8 @@ let speedValueText;
 let customInput;
 let btnApplyInput;
 let narrativeText;
+let selectPreset;
+let btnSavePreset;
 
 export async function initPlayer(algoName) {
   try {
@@ -39,6 +41,8 @@ export async function initPlayer(algoName) {
     customInput = document.getElementById('input-custom');
     btnApplyInput = document.getElementById('btn-apply-input');
     narrativeText = document.getElementById('narrative-text');
+    selectPreset = document.getElementById('select-preset');
+    btnSavePreset = document.getElementById('btn-save-preset');
 
     // Setup title and description
     document.getElementById('algo-title').textContent = currentAlgorithm.name;
@@ -67,6 +71,9 @@ export async function initPlayer(algoName) {
 
     // Bind event listeners
     bindEvents();
+
+    // Load presets dropdown from localStorage
+    loadPresetsDropdown();
   } catch (err) {
     console.error("Failed to initialize visualizer player:", err);
   }
@@ -387,5 +394,67 @@ function bindEvents() {
 
     defaultArray = parsed;
     resetPlayroom(defaultArray, targetVal);
+  });
+
+  // Change event on select-preset dropdown
+  if (selectPreset) {
+    selectPreset.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val) {
+        customInput.value = val;
+        btnApplyInput.click();
+      }
+    });
+  }
+
+  // Click event on btn-save-preset
+  if (btnSavePreset) {
+    btnSavePreset.addEventListener('click', () => {
+      const val = customInput.value.trim();
+      if (!val) {
+        alert("Please enter a valid comma-separated array first.");
+        return;
+      }
+      
+      const parsed = val.split(',')
+        .map(v => parseInt(v.trim(), 10))
+        .filter(v => !isNaN(v));
+
+      if (parsed.length < 3 || parsed.length > 15) {
+        alert("Please enter between 3 and 15 numbers.");
+        return;
+      }
+
+      const presetName = prompt("Enter a name for this custom array preset:");
+      if (!presetName) return;
+      const trimmedName = presetName.trim();
+      if (!trimmedName) return;
+
+      const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
+      storedPresets.push({ name: trimmedName, array: val });
+      localStorage.setItem('algovisual_presets', JSON.stringify(storedPresets));
+      
+      loadPresetsDropdown();
+      // Select the newly added option
+      if (selectPreset) {
+        selectPreset.value = val;
+      }
+    });
+  }
+}
+
+export function loadPresetsDropdown() {
+  const selectPreset = document.getElementById('select-preset');
+  if (!selectPreset) return;
+  selectPreset.innerHTML = `
+    <option value="">-- Presets --</option>
+    <option value="23,45,12,56,34,18,9,41">Default Array</option>
+  `;
+  const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
+  storedPresets.forEach(preset => {
+    const opt = document.createElement('option');
+    opt.value = preset.array;
+    opt.textContent = preset.name;
+    selectPreset.appendChild(opt);
   });
 }
