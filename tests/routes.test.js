@@ -75,4 +75,17 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('quickSort')");
   });
+
+  test('GET /compare should load comparison board successfully', async () => {
+    const res = await request(app).get('/compare');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Comparison Board - AlgoVisual');
+  });
+
+  test('GET /compare?algoA=bubbleSort&algoB=quickSort should load comparison board with params', async () => {
+    const res = await request(app).get('/compare?algoA=bubbleSort&algoB=quickSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('bubbleSort');
+    expect(res.text).toContain('quickSort');
+  });
 });
