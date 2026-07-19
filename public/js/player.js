@@ -146,7 +146,7 @@ function renderSnapshot(index) {
   const snapshot = snapshots[index];
 
   // 1. Render data bars (with algorithm category context)
-  renderBars(snapshot.array, snapshot.highlights, snapshot.pointers, currentAlgorithm.category);
+  renderBars(snapshot.array, snapshot.highlights, snapshot.pointers, currentAlgorithm.category, snapshot.auxLeft, snapshot.auxRight, snapshot.auxLeftStart);
 
   // 2. Highlight active pseudocode line
   updateCodeHighlight(snapshot.executingLine);
@@ -170,7 +170,7 @@ function renderSnapshot(index) {
   }
 }
 
-function renderBars(arr, highlights, pointers, category) {
+function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRight = null, auxLeftStart = -1) {
   barsContainer.innerHTML = '';
   
   if (category === 'Pathfinding') {
@@ -236,44 +236,85 @@ function renderBars(arr, highlights, pointers, category) {
       barsContainer.appendChild(cell);
     });
   } else {
-    // Apply sorting bars layout styles
-    barsContainer.className = "bar-container gap-2 sm:gap-4 justify-center items-end h-[220px]";
+    // Apply sorting bars layout styles — wrap in a flex column to allow aux canvas below
+    barsContainer.className = "flex flex-col gap-2 w-full";
     const maxVal = Math.max(...arr, 1);
-    
+
+    // Main bar chart row
+    const mainRow = document.createElement('div');
+    mainRow.className = 'bar-container gap-2 sm:gap-4 justify-center items-end h-[220px]';
+
     arr.forEach((value, index) => {
       const col = document.createElement('div');
       col.className = 'flex-1 flex flex-col justify-end items-center h-full relative';
-      
+
       let tubeClass = 'bar-tube normal';
-      if (highlights.includes(index)) {
-        tubeClass = 'bar-tube highlight';
-      }
-      
-      // If we are at the last snapshot, highlight the completed state
-      if (currentIndex === snapshots.length - 1) {
-        tubeClass = 'bar-tube completed';
-      }
-      
-      // Render pointer label badges above sorting bars
+      if (highlights.includes(index)) tubeClass = 'bar-tube highlight';
+      if (currentIndex === snapshots.length - 1) tubeClass = 'bar-tube completed';
+
       let pointerLabels = [];
       for (const [pName, pIndex] of Object.entries(pointers)) {
-        if (pIndex === index) {
-          pointerLabels.push(pName);
-        }
+        if (pIndex === index) pointerLabels.push(pName);
       }
       const pointerHtml = pointerLabels.length > 0
-        ? `<div class="pointer-badge generic" style="top: -24px;">${pointerLabels.join(', ')}</div>`
-        : '';
-        
+        ? `<div class="pointer-badge generic" style="top:-24px">${pointerLabels.join(', ')}</div>` : '';
+
       const heightPercent = (value / maxVal) * 100;
-      
       col.innerHTML = `
         ${pointerHtml}
-        <div class="${tubeClass}" style="height: ${heightPercent}%;"></div>
+        <div class="${tubeClass}" style="height:${heightPercent}%"></div>
         <span class="text-slate-400 font-technical text-xs mt-2 select-none font-semibold font-mono">${value}</span>
       `;
-      barsContainer.appendChild(col);
+      mainRow.appendChild(col);
     });
+    barsContainer.appendChild(mainRow);
+
+    // Auxiliary split sub-array canvas (Merge Sort only)
+    if (auxLeft && auxRight && auxLeftStart >= 0) {
+      const auxRow = document.createElement('div');
+      auxRow.className = 'w-full';
+
+      const auxMaxVal = Math.max(...auxLeft, ...auxRight, 1);
+      const auxLabel = document.createElement('div');
+      auxLabel.className = 'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-1 px-1';
+      auxLabel.textContent = `Aux Split — Left[${auxLeft.length}]  |  Right[${auxRight.length}]`;
+      auxRow.appendChild(auxLabel);
+
+      const auxCanvas = document.createElement('div');
+      auxCanvas.className = 'flex items-end gap-1 h-[80px] border-t border-slate-900 pt-2';
+
+      // Left sub-array bars (gold)
+      auxLeft.forEach((val) => {
+        const col = document.createElement('div');
+        col.className = 'flex-1 flex flex-col justify-end items-center h-full';
+        const heightPct = (val / auxMaxVal) * 100;
+        col.innerHTML = `
+          <div style="height:${heightPct}%;background:linear-gradient(to top,rgba(234,179,8,0.6),rgba(234,179,8,0.2));border:1px solid rgba(234,179,8,0.6);border-radius:2px 2px 0 0"></div>
+          <span class="text-[8px] text-yellow-500 font-mono mt-1 select-none">${val}</span>
+        `;
+        auxCanvas.appendChild(col);
+      });
+
+      // Divider
+      const divider = document.createElement('div');
+      divider.className = 'w-px h-full bg-slate-700 mx-1 self-stretch';
+      auxCanvas.appendChild(divider);
+
+      // Right sub-array bars (magenta)
+      auxRight.forEach((val) => {
+        const col = document.createElement('div');
+        col.className = 'flex-1 flex flex-col justify-end items-center h-full';
+        const heightPct = (val / auxMaxVal) * 100;
+        col.innerHTML = `
+          <div style="height:${heightPct}%;background:linear-gradient(to top,rgba(168,85,247,0.6),rgba(168,85,247,0.2));border:1px solid rgba(168,85,247,0.6);border-radius:2px 2px 0 0"></div>
+          <span class="text-[8px] text-purple-400 font-mono mt-1 select-none">${val}</span>
+        `;
+        auxCanvas.appendChild(col);
+      });
+
+      auxRow.appendChild(auxCanvas);
+      barsContainer.appendChild(auxRow);
+    }
   }
 
   // Sonify active comparison highlights or active node scans
