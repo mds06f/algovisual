@@ -88,4 +88,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('bubbleSort');
     expect(res.text).toContain('quickSort');
   });
+
+  test('GET /visualizer?algo=mergeSort should load visualizer with mergeSort successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=mergeSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('mergeSort')");
+  });
 });
