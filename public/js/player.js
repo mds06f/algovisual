@@ -665,6 +665,22 @@ function bindEvents() {
     });
   }
 
+function instrumentSandboxCode(code) {
+  const firstBraceIndex = code.indexOf('{');
+  if (firstBraceIndex === -1) return code;
+
+  let instrumented = code.slice(0, firstBraceIndex + 1) + 
+    "\n  let _loopCount = 0;\n" + 
+    code.slice(firstBraceIndex + 1);
+
+  const guard = 'if (++_loopCount > 50000) { throw new Error("Potential infinite loop detected (limit of 50000 iterations exceeded). Execution aborted."); } ';
+
+  // Combined single regex to match for, while, and do loops followed by open curly braces
+  return instrumented.replace(/(for|while|do)\s*(\([^)]*\))?\s*\{/g, (match, type, cond) => {
+    return `${type}${cond || ''} { ${guard}`;
+  });
+}
+
   // Run custom sandbox algorithm code
   if (btnRunSandbox) {
     btnRunSandbox.addEventListener('click', () => {
@@ -675,8 +691,11 @@ function bindEvents() {
       }
       
       try {
+        // Instrument user code to insert loop guards
+        const instrumented = instrumentSandboxCode(userCode);
+
         // Evaluate the function body typed in the textarea
-        const compiledFn = new Function(`return (${userCode})`)();
+        const compiledFn = new Function(`return (${instrumented})`)();
         
         if (typeof compiledFn !== 'function') {
           throw new Error("Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }");
