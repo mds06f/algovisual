@@ -623,6 +623,47 @@ function bindEvents() {
       URL.revokeObjectURL(url);
     });
   }
+
+  // Edit Narration Text on double click
+  if (narrativeText) {
+    narrativeText.addEventListener('dblclick', () => {
+      // Prevent editing if animation is currently playing
+      if (isPlaying) {
+        alert("Please pause the playback first before editing narration.");
+        return;
+      }
+      
+      const currentDesc = snapshots[currentIndex]?.description || '';
+      const input = document.createElement('textarea');
+      input.value = currentDesc;
+      input.className = "w-full bg-slate-950 text-xs font-mono text-cyan-400 border border-slate-900 rounded p-2 focus:outline-none focus:border-cyan-500 min-h-[44px]";
+      
+      // Swap elements
+      const parent = narrativeText.parentNode;
+      parent.replaceChild(input, narrativeText);
+      input.focus();
+      
+      const saveChanges = () => {
+        const newVal = input.value.trim();
+        if (newVal && snapshots[currentIndex]) {
+          snapshots[currentIndex].description = newVal;
+          narrativeText.textContent = newVal;
+        }
+        parent.replaceChild(narrativeText, input);
+      };
+      
+      input.addEventListener('blur', saveChanges);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          saveChanges();
+        }
+        if (e.key === 'Escape') {
+          parent.replaceChild(narrativeText, input);
+        }
+      });
+    });
+  }
 }
 
 export function loadPresetsDropdown() {
