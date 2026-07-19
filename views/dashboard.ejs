@@ -95,17 +95,20 @@
             </div>
           </a>
 
-          <!-- Linear Search Placeholder -->
-          <div class="p-4 border border-slate-900/60 bg-slate-950/10 rounded flex justify-between items-center opacity-50 relative">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="led-indicator led-standby"></span>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-technical">Linear Search</h3>
+          <!-- Linear Search Link -->
+          <a href="/visualizer?algo=linearSearch" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="led-indicator led-active"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 font-technical group-hover:text-white">Linear Search</h3>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1 font-light">Sequential element evaluation index scans.</p>
               </div>
-              <p class="text-[10px] text-slate-600 mt-1 font-light">Sequential element evaluation index scans.</p>
+              <span class="text-slate-600 group-hover:text-[#00e1d9] group-hover:translate-x-1 transition duration-200 font-technical text-xs font-bold">LOAD ➔</span>
             </div>
-            <span class="text-[9px] font-technical bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded border border-slate-800">STANDBY</span>
-          </div>
+          </a>
         </div>
       </div>
 
