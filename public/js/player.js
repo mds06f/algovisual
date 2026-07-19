@@ -8,6 +8,10 @@ let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
 let defaultArray = [23, 45, 12, 56, 34, 18, 9, 41];
 
+// Grid wall drawing mouse state flags
+let isGridMouseDown = false;
+let isDrawingWall = true;
+
 // DOM elements
 let barsContainer;
 let pseudocodeContainer;
@@ -103,6 +107,19 @@ export async function initPlayer(algoName) {
       }
     }
 
+    if (currentAlgorithm.category === 'Pathfinding') {
+      const TOTAL_NODES = 96;
+      defaultArray = Array(TOTAL_NODES).fill(0); // STATE_EMPTY
+      defaultArray[25] = 1; // STATE_START
+      defaultArray[70] = 2; // STATE_END
+      const defaultWalls = [17, 29, 41, 53, 65, 43, 44, 45, 46];
+      defaultWalls.forEach(idx => {
+        defaultArray[idx] = 3; // STATE_WALL
+      });
+    } else {
+      defaultArray = [23, 45, 12, 56, 34, 18, 9, 41];
+    }
+
     // Initial setup
     resetPlayroom(defaultArray, initialTarget);
 
@@ -189,6 +206,8 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
       else if (cellType === 5) cellClass += ' path';
       
       cell.className = cellClass;
+      cell.dataset.index = index;
+      cell.addEventListener('dragstart', (e) => e.preventDefault());
       
       if (cellType === 1) {
         cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">S</span>';
@@ -764,6 +783,54 @@ function bindEvents() {
           parent.replaceChild(narrativeText, input);
         }
       });
+    });
+  }
+
+  // Interactive pathfinding grid drawing events
+  if (barsContainer) {
+    barsContainer.addEventListener('mousedown', (e) => {
+      if (currentAlgorithm.category !== 'Pathfinding') return;
+      const cell = e.target.closest('.grid-cell');
+      if (!cell) return;
+
+      const index = parseInt(cell.dataset.index, 10);
+      if (isNaN(index)) return;
+
+      // Do not allow drawing over start (index 25) or end (index 70)
+      if (index === 25 || index === 70) return;
+
+      // Determine drawing mode (draw wall vs erase wall)
+      if (defaultArray[index] === 3) {
+        isDrawingWall = false;
+        defaultArray[index] = 0;
+      } else {
+        isDrawingWall = true;
+        defaultArray[index] = 3;
+      }
+
+      isGridMouseDown = true;
+      resetPlayroom(defaultArray);
+    });
+
+    barsContainer.addEventListener('mouseover', (e) => {
+      if (currentAlgorithm.category !== 'Pathfinding' || !isGridMouseDown) return;
+      const cell = e.target.closest('.grid-cell');
+      if (!cell) return;
+
+      const index = parseInt(cell.dataset.index, 10);
+      if (isNaN(index)) return;
+
+      if (index === 25 || index === 70) return;
+
+      const newType = isDrawingWall ? 3 : 0;
+      if (defaultArray[index] !== newType) {
+        defaultArray[index] = newType;
+        resetPlayroom(defaultArray);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isGridMouseDown = false;
     });
   }
 }
