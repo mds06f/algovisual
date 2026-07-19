@@ -394,6 +394,27 @@ body::before {
   text-shadow: 0 0 6px rgba(6, 182, 212, 0.5);
 }
 
+/* Call Stack frame chip */
+.callstack-frame {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 3px;
+  border-left: 2px solid rgba(6, 182, 212, 0.5);
+  background: rgba(6, 182, 212, 0.05);
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+}
+.callstack-frame.active {
+  border-left-color: rgba(6, 182, 212, 0.9);
+  background: rgba(6, 182, 212, 0.12);
+  color: #00e1d9;
+  box-shadow: inset 0 0 6px rgba(6, 182, 212, 0.1);
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
 /* Custom speed range slider */
 .tech-slider {
   -webkit-appearance: none;

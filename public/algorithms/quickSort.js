@@ -31,6 +31,8 @@ export const algorithm = {
       complexity: { time: "O(n log n)", space: "O(log n)" }
     });
 
+    const callStack = [];
+
     const makeSnapshot = (line, desc, highlights = [], pointers = {}) => {
       snapshots.push({
         array: [...workingArr],
@@ -38,13 +40,17 @@ export const algorithm = {
         pointers: pointers,
         executingLine: line,
         stats: stats(),
-        description: desc
+        description: desc,
+        callStack: [...callStack]
       });
     };
 
     makeSnapshot(0, "Starting Quick Sort algorithm.");
 
     function runQuickSort(low, high) {
+      const frameName = `quickSort(low: ${low}, high: ${high})`;
+      callStack.push(frameName);
+
       if (low < high) {
         makeSnapshot(2, `Sub-array range [${low}, ${high}]. Partitioning array.`, [], { low, high });
         const p = runPartition(low, high);
@@ -55,6 +61,8 @@ export const algorithm = {
         makeSnapshot(4, `Recursively sorting right sub-array [${p + 1}, ${high}].`, [], { pivot_index: p, low, high });
         runQuickSort(p + 1, high);
       }
+
+      callStack.pop();
     }
 
     function runPartition(low, high) {

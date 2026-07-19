@@ -28,6 +28,7 @@ export const algorithm = {
     let swaps = 0;
 
     const stats = () => ({ comparisons, swaps, complexity: { time: "O(n log n)", space: "O(n)" } });
+    const callStack = [];
 
     const snap = (line, desc, highlights = [], auxLeft = null, auxRight = null, leftStart = -1) => {
       snapshots.push({
@@ -37,6 +38,7 @@ export const algorithm = {
         executingLine: line,
         stats: stats(),
         description: desc,
+        callStack: [...callStack],
         // auxiliary sub-array data for the split canvas
         auxLeft: auxLeft ? [...auxLeft] : null,
         auxRight: auxRight ? [...auxRight] : null,
@@ -47,7 +49,13 @@ export const algorithm = {
     snap(0, `Starting Merge Sort on array of size ${arr.length}.`);
 
     function mergeSort(start, end) {
-      if (end - start < 1) return;
+      const frameName = `mergeSort(start: ${start}, end: ${end})`;
+      callStack.push(frameName);
+
+      if (end - start < 1) {
+        callStack.pop();
+        return;
+      }
 
       const mid = Math.floor((start + end) / 2);
       const segment = workingArr.slice(start, end + 1);
@@ -105,6 +113,8 @@ export const algorithm = {
         snap(14, `Copy remaining R[${j}]=${R[j]} to index ${k}.`, [k], [...L], [...R], start);
         j++; k++;
       }
+
+      callStack.pop();
     }
 
     mergeSort(0, workingArr.length - 1);
