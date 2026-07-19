@@ -61,4 +61,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('minMaxFinder')");
   });
+
+  test('GET /visualizer?algo=reverseArray should load visualizer with reverseArray successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=reverseArray');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('reverseArray')");
+  });
 });
