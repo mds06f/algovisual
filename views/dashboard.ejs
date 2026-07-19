@@ -6,8 +6,20 @@
   <title>AlgoVisual - Algorithm Telemetry Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.classList.add('light-theme');
+    }
+  </script>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative overflow-x-hidden">
+  
+  <!-- Theme Toggle Button -->
+  <div class="absolute top-4 right-4">
+    <button id="theme-toggle" class="tech-btn p-2 rounded text-xs flex items-center justify-center w-8 h-8" title="Toggle Light/Dark Theme">
+      <span id="theme-toggle-icon">☀️</span>
+    </button>
+  </div>
   
   <div class="max-w-4xl w-full py-8">
     <!-- Header -->
@@ -132,5 +144,29 @@
 
 
   </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('theme-toggle');
+      const toggleIcon = document.getElementById('theme-toggle-icon');
+      
+      const updateToggleIcon = () => {
+        if (toggleIcon) {
+          const isLight = document.documentElement.classList.contains('light-theme');
+          toggleIcon.textContent = isLight ? '🌙' : '☀️';
+        }
+      };
+      
+      updateToggleIcon();
+      
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const isLight = document.documentElement.classList.toggle('light-theme');
+          localStorage.setItem('theme', isLight ? 'light' : 'dark');
+          updateToggleIcon();
+        });
+      }
+    });
+  </script>
 </body>
 </html>
