@@ -39,16 +39,23 @@ export const algorithm = {
     const END_INDEX = 70;
 
     // Define some walls to bypass
-    const wallIndices = new Set([17, 29, 41, 53, 65, 43, 44, 45, 46]);
+    const wallIndices = new Set();
+    if (arr && arr.length === TOTAL_NODES) {
+      arr.forEach((cellType, idx) => {
+        if (cellType === STATE_WALL && idx !== START_INDEX && idx !== END_INDEX) {
+          wallIndices.add(idx);
+        }
+      });
+    } else {
+      [17, 29, 41, 53, 65, 43, 44, 45, 46].forEach(idx => wallIndices.add(idx));
+    }
 
     // Build initial grid state array
     const grid = Array(TOTAL_NODES).fill(STATE_EMPTY);
     grid[START_INDEX] = STATE_START;
     grid[END_INDEX] = STATE_END;
     wallIndices.forEach(idx => {
-      if (idx !== START_INDEX && idx !== END_INDEX) {
-        grid[idx] = STATE_WALL;
-      }
+      grid[idx] = STATE_WALL;
     });
 
     const snapshots = [];
