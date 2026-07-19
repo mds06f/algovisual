@@ -27,6 +27,10 @@ let btnRunSandbox;
 let sandboxContainer;
 let sandboxTextarea;
 let labelCodeType;
+let btnAudioToggle;
+let audioToggleIcon;
+let audioCtx = null;
+let isAudioMuted = true;
 
 export async function initPlayer(algoName) {
   try {
@@ -53,6 +57,8 @@ export async function initPlayer(algoName) {
     sandboxContainer = document.getElementById('sandbox-container');
     sandboxTextarea = document.getElementById('sandbox-textarea');
     labelCodeType = document.getElementById('label-code-type');
+    btnAudioToggle = document.getElementById('btn-audio-toggle');
+    audioToggleIcon = document.getElementById('audio-toggle-icon');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -259,6 +265,19 @@ function renderBars(arr, highlights, pointers, category) {
       `;
       barsContainer.appendChild(col);
     });
+  }
+
+  // Sonify active comparison highlights or active node scans
+  if (highlights && highlights.length > 0) {
+    const val = arr[highlights[0]];
+    if (val !== undefined && typeof val === 'number') {
+      if (category === 'Pathfinding') {
+        // Map node index (0-95) to frequency scale
+        playToneForValue((highlights[0] / 95) * 100);
+      } else {
+        playToneForValue(val);
+      }
+    }
   }
 }
 
@@ -557,6 +576,21 @@ function bindEvents() {
       }
     });
   }
+
+  // Toggle Audio Mute Switch
+  if (btnAudioToggle) {
+    btnAudioToggle.addEventListener('click', () => {
+      isAudioMuted = !isAudioMuted;
+      if (audioToggleIcon) {
+        audioToggleIcon.textContent = isAudioMuted ? '🔇' : '🔊';
+      }
+      
+      // Initialize AudioContext on user interaction to comply with browser autoplay policies
+      if (!isAudioMuted && !audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    });
+  }
 }
 
 export function loadPresetsDropdown() {
@@ -573,4 +607,40 @@ export function loadPresetsDropdown() {
     opt.textContent = preset.name;
     selectPreset.appendChild(opt);
   });
+}
+
+function playToneForValue(value) {
+  if (isAudioMuted) return;
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Resume context if suspended (browser autoplay restrictions)
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    // Map value (1 to 100) to frequency range (220Hz to 880Hz)
+    const minFreq = 220;
+    const maxFreq = 880;
+    const freq = minFreq + (Math.max(0, Math.min(99, value - 1)) / 99) * (maxFreq - minFreq);
+
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    // Dynamic volume ramp to prevent audio clicks/pops
+    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.12);
+  } catch (err) {
+    console.error("Audio sonification synthesis failed:", err);
+  }
 }
