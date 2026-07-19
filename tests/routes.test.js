@@ -26,4 +26,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('binarySearch')");
   });
+
+  test('GET /visualizer?algo=selectionSort should load visualizer with selectionSort successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=selectionSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('selectionSort')");
+  });
 });
