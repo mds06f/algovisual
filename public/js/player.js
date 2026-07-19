@@ -37,6 +37,10 @@ let audioCtx = null;
 let isAudioMuted = true;
 let btnExportLog;
 let stepCounterText;
+let btnBenchmarkSandbox;
+let sandboxBenchmarkPanel;
+let btnCloseBenchmark;
+let benchmarkChartContainer;
 
 export async function initPlayer(algoName) {
   try {
@@ -67,10 +71,15 @@ export async function initPlayer(algoName) {
     audioToggleIcon = document.getElementById('audio-toggle-icon');
     btnExportLog = document.getElementById('btn-export-log');
     stepCounterText = document.getElementById('step-counter-text');
+    btnBenchmarkSandbox = document.getElementById('btn-benchmark-sandbox');
+    sandboxBenchmarkPanel = document.getElementById('sandbox-benchmark-panel');
+    btnCloseBenchmark = document.getElementById('btn-close-benchmark');
+    benchmarkChartContainer = document.getElementById('benchmark-chart-container');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
     if (sandboxContainer) sandboxContainer.classList.add('hidden');
+    if (sandboxBenchmarkPanel) sandboxBenchmarkPanel.classList.add('hidden');
     if (pseudocodeContainer) pseudocodeContainer.classList.remove('hidden');
     if (btnToggleSandbox) btnToggleSandbox.textContent = "Sandbox Mode";
     if (labelCodeType) labelCodeType.textContent = "PSEUDOCODE";
@@ -721,6 +730,117 @@ function instrumentSandboxCode(code) {
         alert("Custom sandbox algorithm loaded successfully!");
       } catch (err) {
         console.error("Sandbox evaluation error:", err);
+        alert("Compilation or runtime error:\n" + err.message);
+      }
+    });
+  }
+
+  // Close Benchmark panel
+  if (btnCloseBenchmark) {
+    btnCloseBenchmark.addEventListener('click', () => {
+      sandboxBenchmarkPanel.classList.add('hidden');
+    });
+  }
+
+  // Benchmark sandbox algorithm code
+  if (btnBenchmarkSandbox) {
+    btnBenchmarkSandbox.addEventListener('click', () => {
+      const userCode = sandboxTextarea.value.trim();
+      if (!userCode) {
+        alert("Please enter your algorithm generator function code to benchmark.");
+        return;
+      }
+
+      try {
+        const instrumented = instrumentSandboxCode(userCode);
+        const compiledFn = new Function(`return (${instrumented})`)();
+        if (typeof compiledFn !== 'function') {
+          throw new Error("Parsed code is not a function.");
+        }
+
+        const sizes = currentAlgorithm.category === 'Pathfinding' ? [12, 24, 48, 96] : [10, 50, 100, 250, 500, 1000];
+        const dataPoints = [];
+
+        for (const size of sizes) {
+          let testInput;
+          if (currentAlgorithm.category === 'Pathfinding') {
+            testInput = Array(size).fill(0);
+            if (size > 2) {
+              testInput[1] = 1;
+              testInput[size - 2] = 2;
+            }
+          } else {
+            testInput = Array.from({ length: size }, () => Math.floor(Math.random() * size));
+          }
+
+          let minTime = Infinity;
+          for (let run = 0; run < 3; run++) {
+            const t0 = performance.now();
+            compiledFn([...testInput], 34);
+            const t1 = performance.now();
+            const elapsed = t1 - t0;
+            if (elapsed < minTime) minTime = elapsed;
+          }
+          dataPoints.push({ size, time: minTime });
+        }
+
+        // Plot dynamically as SVG
+        const width = 280;
+        const height = 130;
+        const padding = 25;
+        const chartW = width - 2 * padding;
+        const chartH = height - 2 * padding;
+
+        const maxValX = sizes[sizes.length - 1];
+        const maxValY = Math.max(...dataPoints.map(d => d.time)) || 0.001;
+
+        // Map data points to SVG coordinates
+        const points = dataPoints.map(d => {
+          const x = padding + (d.size / maxValX) * chartW;
+          const y = (height - padding) - (d.time / maxValY) * chartH;
+          return { x, y, size: d.size, time: d.time };
+        });
+
+        // Path generator
+        let pathD = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 1; i < points.length; i++) {
+          pathD += ` L ${points[i].x} ${points[i].y}`;
+        }
+
+        // Render ticks and dots
+        let dotsHTML = '';
+        points.forEach(p => {
+          dotsHTML += `
+            <circle cx="${p.x}" cy="${p.y}" r="3" fill="#00f3ff">
+              <title>Size: ${p.size}, Time: ${p.time.toFixed(4)}ms</title>
+            </circle>
+          `;
+        });
+
+        const svgHTML = `
+          <svg width="${width}" height="${height}" class="overflow-visible">
+            <!-- Grid lines -->
+            <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#1e293b" stroke-width="1" />
+            <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#1e293b" stroke-width="1" />
+            
+            <!-- Trend Line -->
+            <path d="${pathD}" fill="none" stroke="#00f3ff" stroke-width="1.5" />
+            
+            <!-- Data Dots -->
+            ${dotsHTML}
+            
+            <!-- Axis Labels -->
+            <text x="${padding}" y="${height - 8}" fill="#64748b" font-size="8" font-family="monospace">0</text>
+            <text x="${width - padding}" y="${height - 8}" fill="#64748b" font-size="8" font-family="monospace" text-anchor="end">${maxValX}</text>
+            <text x="${padding - 5}" y="${padding + 5}" fill="#64748b" font-size="8" font-family="monospace" text-anchor="end">${maxValY.toFixed(2)}ms</text>
+          </svg>
+        `;
+
+        benchmarkChartContainer.innerHTML = svgHTML;
+        sandboxBenchmarkPanel.classList.remove('hidden');
+
+      } catch (err) {
+        console.error("Benchmark failed:", err);
         alert("Compilation or runtime error:\n" + err.message);
       }
     });
