@@ -32,6 +32,7 @@ let audioToggleIcon;
 let audioCtx = null;
 let isAudioMuted = true;
 let btnExportLog;
+let stepCounterText;
 
 export async function initPlayer(algoName) {
   try {
@@ -61,6 +62,7 @@ export async function initPlayer(algoName) {
     btnAudioToggle = document.getElementById('btn-audio-toggle');
     audioToggleIcon = document.getElementById('audio-toggle-icon');
     btnExportLog = document.getElementById('btn-export-log');
+    stepCounterText = document.getElementById('step-counter-text');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -161,6 +163,11 @@ function renderSnapshot(index) {
   // 6. Update disabled states of timeline buttons
   prevBtn.disabled = index === 0;
   nextBtn.disabled = index === snapshots.length - 1;
+
+  // 7. Update step counter text
+  if (stepCounterText) {
+    stepCounterText.textContent = `Step ${index + 1} / ${snapshots.length}`;
+  }
 }
 
 function renderBars(arr, highlights, pointers, category) {
