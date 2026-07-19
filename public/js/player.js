@@ -31,6 +31,7 @@ let btnAudioToggle;
 let audioToggleIcon;
 let audioCtx = null;
 let isAudioMuted = true;
+let btnExportLog;
 
 export async function initPlayer(algoName) {
   try {
@@ -59,6 +60,7 @@ export async function initPlayer(algoName) {
     labelCodeType = document.getElementById('label-code-type');
     btnAudioToggle = document.getElementById('btn-audio-toggle');
     audioToggleIcon = document.getElementById('audio-toggle-icon');
+    btnExportLog = document.getElementById('btn-export-log');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -589,6 +591,29 @@ function bindEvents() {
       if (!isAudioMuted && !audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
+    });
+  }
+
+  // Download Debug Log
+  if (btnExportLog) {
+    btnExportLog.addEventListener('click', () => {
+      const logs = Array.from(consoleLog.querySelectorAll('div'))
+        .map(div => div.textContent)
+        .join('\n');
+      if (!logs) {
+        alert("Execution logs are empty. Run the algorithm first to accumulate logs.");
+        return;
+      }
+      
+      const blob = new Blob([logs], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentAlgorithm.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_debug_log.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     });
   }
 }

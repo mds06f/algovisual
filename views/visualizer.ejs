@@ -209,8 +209,13 @@
           <!-- Narrative Log Console -->
           <div class="flex flex-col h-[140px] bg-slate-950/50">
             <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-900 flex justify-between items-center">
-              <span class="text-[10px] font-bold text-slate-400 font-technical uppercase tracking-wider">Execution Debug Logs</span>
-              <span class="text-[9px] text-slate-600 font-technical">FIFO_QUEUE</span>
+              <span class="text-[10px] font-bold text-slate-400 font-technical tracking-wider uppercase">Execution Debug Logs</span>
+              <div class="flex items-center gap-2">
+                <button id="btn-export-log" class="tech-btn text-[9px] px-2 py-0.5 rounded font-technical font-bold uppercase" title="Export Execution Logs to Text File">
+                  Export Log
+                </button>
+                <span class="text-[9px] text-slate-600 font-technical">FIFO_QUEUE</span>
+              </div>
             </div>
             <div id="console-log" class="flex-1 overflow-y-auto p-3 space-y-1">
               <!-- Append history steps log -->
