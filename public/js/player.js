@@ -22,6 +22,11 @@ let btnApplyInput;
 let narrativeText;
 let selectPreset;
 let btnSavePreset;
+let btnToggleSandbox;
+let btnRunSandbox;
+let sandboxContainer;
+let sandboxTextarea;
+let labelCodeType;
 
 export async function initPlayer(algoName) {
   try {
@@ -43,6 +48,18 @@ export async function initPlayer(algoName) {
     narrativeText = document.getElementById('narrative-text');
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
+    btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
+    btnRunSandbox = document.getElementById('btn-run-sandbox');
+    sandboxContainer = document.getElementById('sandbox-container');
+    sandboxTextarea = document.getElementById('sandbox-textarea');
+    labelCodeType = document.getElementById('label-code-type');
+
+    // Clear sandbox editor contents and return view to default state
+    if (sandboxTextarea) sandboxTextarea.value = '';
+    if (sandboxContainer) sandboxContainer.classList.add('hidden');
+    if (pseudocodeContainer) pseudocodeContainer.classList.remove('hidden');
+    if (btnToggleSandbox) btnToggleSandbox.textContent = "Sandbox Mode";
+    if (labelCodeType) labelCodeType.textContent = "PSEUDOCODE";
 
     // Setup title and description
     document.getElementById('algo-title').textContent = currentAlgorithm.name;
@@ -470,6 +487,73 @@ function bindEvents() {
       // Select the newly added option
       if (selectPreset) {
         selectPreset.value = val;
+      }
+    });
+  }
+
+  // Toggle Sandbox Mode
+  if (btnToggleSandbox) {
+    btnToggleSandbox.addEventListener('click', () => {
+      const isSandboxHidden = sandboxContainer.classList.contains('hidden');
+      if (isSandboxHidden) {
+        // Switch to sandbox mode
+        sandboxContainer.classList.remove('hidden');
+        pseudocodeContainer.classList.add('hidden');
+        btnToggleSandbox.textContent = "PSEUDOCODE MODE";
+        if (labelCodeType) labelCodeType.textContent = "SANDBOX";
+        
+        // Populate textarea with current algorithm's generator function code
+        if (!sandboxTextarea.value.trim()) {
+          sandboxTextarea.value = currentAlgorithm.generator.toString();
+        }
+      } else {
+        // Switch to pseudocode mode
+        sandboxContainer.classList.add('hidden');
+        pseudocodeContainer.classList.remove('hidden');
+        btnToggleSandbox.textContent = "SANDBOX MODE";
+        if (labelCodeType) labelCodeType.textContent = "PSEUDOCODE";
+      }
+    });
+  }
+
+  // Run custom sandbox algorithm code
+  if (btnRunSandbox) {
+    btnRunSandbox.addEventListener('click', () => {
+      const userCode = sandboxTextarea.value.trim();
+      if (!userCode) {
+        alert("Please enter your algorithm generator function code.");
+        return;
+      }
+      
+      try {
+        // Evaluate the function body typed in the textarea
+        const compiledFn = new Function(`return (${userCode})`)();
+        
+        if (typeof compiledFn !== 'function') {
+          throw new Error("Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }");
+        }
+        
+        // Set as the current generator
+        currentAlgorithm.generator = compiledFn;
+        
+        // Retrieve target if searching
+        let targetVal = undefined;
+        if (currentAlgorithm.category === 'Searching') {
+          const targetInput = document.getElementById('input-target');
+          if (targetInput) {
+            const parsedTarget = parseInt(targetInput.value.trim(), 10);
+            if (!isNaN(parsedTarget)) {
+              targetVal = parsedTarget;
+            }
+          }
+        }
+        
+        // Re-initialize playroom
+        resetPlayroom(defaultArray, targetVal);
+        alert("Custom sandbox algorithm loaded successfully!");
+      } catch (err) {
+        console.error("Sandbox evaluation error:", err);
+        alert("Compilation or runtime error:\n" + err.message);
       }
     });
   }
