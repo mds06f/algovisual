@@ -41,6 +41,8 @@ let btnBenchmarkSandbox;
 let sandboxBenchmarkPanel;
 let btnCloseBenchmark;
 let benchmarkChartContainer;
+let selectHeuristic;
+let containerHeuristicSelect;
 
 export async function initPlayer(algoName) {
   try {
@@ -75,6 +77,8 @@ export async function initPlayer(algoName) {
     sandboxBenchmarkPanel = document.getElementById('sandbox-benchmark-panel');
     btnCloseBenchmark = document.getElementById('btn-close-benchmark');
     benchmarkChartContainer = document.getElementById('benchmark-chart-container');
+    selectHeuristic = document.getElementById('select-heuristic');
+    containerHeuristicSelect = document.getElementById('container-heuristic-select');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -101,6 +105,17 @@ export async function initPlayer(algoName) {
         customInputsContainer.classList.add('hidden');
       } else {
         customInputsContainer.classList.remove('hidden');
+      }
+    }
+
+    if (containerHeuristicSelect) {
+      if (algoName === 'aStar') {
+        containerHeuristicSelect.classList.remove('hidden');
+        if (selectHeuristic) {
+          initialTarget = selectHeuristic.value || 'manhattan';
+        }
+      } else {
+        containerHeuristicSelect.classList.add('hidden');
       }
     }
 
@@ -172,7 +187,7 @@ function renderSnapshot(index) {
   const snapshot = snapshots[index];
 
   // 1. Render data bars (with algorithm category context)
-  renderBars(snapshot.array, snapshot.highlights, snapshot.pointers, currentAlgorithm.category, snapshot.auxLeft, snapshot.auxRight, snapshot.auxLeftStart);
+  renderBars(snapshot.array, snapshot.highlights, snapshot.pointers, currentAlgorithm.category, snapshot.auxLeft, snapshot.auxRight, snapshot.auxLeftStart, snapshot.scores);
 
   // 2. Highlight active pseudocode line
   updateCodeHighlight(snapshot.executingLine);
@@ -199,7 +214,7 @@ function renderSnapshot(index) {
   }
 }
 
-function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRight = null, auxLeftStart = -1) {
+function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRight = null, auxLeftStart = -1, scores = null) {
   barsContainer.innerHTML = '';
   
   if (category === 'Pathfinding') {
@@ -222,6 +237,20 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
         cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">S</span>';
       } else if (cellType === 2) {
         cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
+      } else if (scores && scores[index]) {
+        const scoreObj = scores[index];
+        const f = scoreObj.f.toFixed(0);
+        const g = scoreObj.g.toFixed(0);
+        const h = scoreObj.h.toFixed(0);
+        cell.innerHTML = `
+          <div class="text-[7px] leading-tight text-slate-400 font-technical flex flex-col justify-between items-center h-full p-0.5 select-none">
+            <div class="flex justify-between w-full">
+              <span>g:${g}</span>
+              <span>h:${h}</span>
+            </div>
+            <span class="font-bold text-[8px] text-[#00f3ff]">f:${f}</span>
+          </div>
+        `;
       }
       
       barsContainer.appendChild(cell);
@@ -611,6 +640,14 @@ function bindEvents() {
         customInput.value = val;
         btnApplyInput.click();
       }
+    });
+  }
+
+  // Change event on select-heuristic dropdown
+  if (selectHeuristic) {
+    selectHeuristic.addEventListener('change', (e) => {
+      const val = e.target.value;
+      resetPlayroom(defaultArray, val);
     });
   }
 
