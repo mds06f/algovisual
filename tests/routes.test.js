@@ -40,4 +40,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('linearSearch')");
   });
+
+  test('GET /visualizer?algo=insertionSort should load visualizer with insertionSort successfully', async () => {
+    const res = await request(app).get('/visualizer?algo=insertionSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain("initPlayer('insertionSort')");
+  });
 });
