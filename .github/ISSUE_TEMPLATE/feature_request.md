@@ -4,7 +4,6 @@ about: Propose an idea, design change, or playback tool for this project
 title: '[FEATURE] '
 labels: enhancement, discussion
 assignees: ''
-
 ---
 
 **Is your feature request related to a problem? Please describe.**

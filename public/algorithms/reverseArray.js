@@ -1,19 +1,20 @@
 // public/algorithms/reverseArray.js
 
 export const algorithm = {
-  name: "Array Reversing",
-  category: "Searching",
-  description: "Reverse the elements of an array in-place by maintaining left and right boundary pointers and swapping their values as they approach the center.",
+  name: 'Array Reversing',
+  category: 'Searching',
+  description:
+    'Reverse the elements of an array in-place by maintaining left and right boundary pointers and swapping their values as they approach the center.',
   pseudocode: [
-    "procedure reverseArray(A : list of items):",
-    "  left = 0",
-    "  right = length(A) - 1",
-    "  while left < right do:",
-    "    swap A[left] and A[right]",
-    "    left = left + 1",
-    "    right = right - 1"
+    'procedure reverseArray(A : list of items):',
+    '  left = 0',
+    '  right = length(A) - 1',
+    '  while left < right do:',
+    '    swap A[left] and A[right]',
+    '    left = left + 1',
+    '    right = right - 1',
   ],
-  generator: function(arr) {
+  generator: function (arr) {
     const snapshots = [];
     const n = arr.length;
     const workingArr = [...arr];
@@ -25,7 +26,7 @@ export const algorithm = {
     const stats = (swaps = 0) => ({
       comparisons: 0,
       swaps: swaps,
-      complexity: { time: "O(n)", space: "O(1)" }
+      complexity: { time: 'O(n)', space: 'O(1)' },
     });
 
     // Step 0: Initial state
@@ -35,7 +36,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 0,
       stats: stats(0),
-      description: `Starting array reversing. Array size = ${n}.`
+      description: `Starting array reversing. Array size = ${n}.`,
     });
 
     // Step 1: Initialize left = 0 and right = n - 1
@@ -45,7 +46,7 @@ export const algorithm = {
       pointers: { left: left, right: right },
       executingLine: 2,
       stats: stats(0),
-      description: `Initialize left boundary pointer to index 0, and right boundary pointer to index ${right}.`
+      description: `Initialize left boundary pointer to index 0, and right boundary pointer to index ${right}.`,
     });
 
     while (left < right) {
@@ -56,7 +57,7 @@ export const algorithm = {
         pointers: { left: left, right: right },
         executingLine: 3,
         stats: stats(swapCount),
-        description: `Check condition left (${left}) < right (${right})? Yes. Continue loop.`
+        description: `Check condition left (${left}) < right (${right})? Yes. Continue loop.`,
       });
 
       // Step 4: Swap elements
@@ -71,7 +72,7 @@ export const algorithm = {
         pointers: { left: left, right: right },
         executingLine: 4,
         stats: stats(swapCount),
-        description: `Swap element at left (${workingArr[right]}) and right (${workingArr[left]}).`
+        description: `Swap element at left (${workingArr[right]}) and right (${workingArr[left]}).`,
       });
 
       // Step 5: left = left + 1
@@ -82,7 +83,7 @@ export const algorithm = {
         pointers: { left: left, right: right },
         executingLine: 5,
         stats: stats(swapCount),
-        description: `Increment left pointer to index ${left}.`
+        description: `Increment left pointer to index ${left}.`,
       });
 
       // Step 6: right = right - 1
@@ -93,7 +94,7 @@ export const algorithm = {
         pointers: { left: left, right: right },
         executingLine: 6,
         stats: stats(swapCount),
-        description: `Decrement right pointer to index ${right}.`
+        description: `Decrement right pointer to index ${right}.`,
       });
     }
 
@@ -104,9 +105,9 @@ export const algorithm = {
       pointers: {},
       executingLine: 3,
       stats: stats(swapCount),
-      description: `Check condition left (${left}) < right (${right})? No. Reversing complete.`
+      description: `Check condition left (${left}) < right (${right})? No. Reversing complete.`,
     });
 
     return snapshots;
-  }
+  },
 };

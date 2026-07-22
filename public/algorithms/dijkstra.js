@@ -2,24 +2,25 @@
 
 export const algorithm = {
   name: "Dijkstra's Algorithm",
-  category: "Pathfinding",
-  description: "Dijkstra's Algorithm finds the shortest path between nodes in a graph. For a grid layout, it systematically visits neighboring nodes to find the shortest distance from the start node to the end node, bypassing wall obstacles.",
+  category: 'Pathfinding',
+  description:
+    "Dijkstra's Algorithm finds the shortest path between nodes in a graph. For a grid layout, it systematically visits neighboring nodes to find the shortest distance from the start node to the end node, bypassing wall obstacles.",
   pseudocode: [
-    "procedure Dijkstra(Graph, start, end):",
-    "  for each node v in Graph do:",
-    "    dist[v] = INFINITY, visited[v] = false",
-    "  dist[start] = 0",
-    "  while there are unvisited nodes do:",
-    "    u = unvisited node with min dist[u]",
-    "    if u == end or dist[u] == INFINITY then break",
-    "    visited[u] = true",
-    "    for each neighbor v of u do:",
-    "      alt = dist[u] + 1",
-    "      if alt < dist[v] then",
-    "        dist[v] = alt, parent[v] = u",
-    "  reconstruct shortest path from parent map"
+    'procedure Dijkstra(Graph, start, end):',
+    '  for each node v in Graph do:',
+    '    dist[v] = INFINITY, visited[v] = false',
+    '  dist[start] = 0',
+    '  while there are unvisited nodes do:',
+    '    u = unvisited node with min dist[u]',
+    '    if u == end or dist[u] == INFINITY then break',
+    '    visited[u] = true',
+    '    for each neighbor v of u do:',
+    '      alt = dist[u] + 1',
+    '      if alt < dist[v] then',
+    '        dist[v] = alt, parent[v] = u',
+    '  reconstruct shortest path from parent map',
   ],
-  generator: function(arr) {
+  generator: function (arr) {
     // Dijkstra operates on a grid of fixed dimensions 8 rows x 12 columns = 96 nodes
     const ROWS = 8;
     const COLS = 12;
@@ -42,19 +43,25 @@ export const algorithm = {
     const wallIndices = new Set();
     if (arr && arr.length === TOTAL_NODES) {
       arr.forEach((cellType, idx) => {
-        if (cellType === STATE_WALL && idx !== START_INDEX && idx !== END_INDEX) {
+        if (
+          cellType === STATE_WALL &&
+          idx !== START_INDEX &&
+          idx !== END_INDEX
+        ) {
           wallIndices.add(idx);
         }
       });
     } else {
-      [17, 29, 41, 53, 65, 43, 44, 45, 46].forEach(idx => wallIndices.add(idx));
+      [17, 29, 41, 53, 65, 43, 44, 45, 46].forEach((idx) =>
+        wallIndices.add(idx),
+      );
     }
 
     // Build initial grid state array
     const grid = Array(TOTAL_NODES).fill(STATE_EMPTY);
     grid[START_INDEX] = STATE_START;
     grid[END_INDEX] = STATE_END;
-    wallIndices.forEach(idx => {
+    wallIndices.forEach((idx) => {
       grid[idx] = STATE_WALL;
     });
 
@@ -65,18 +72,18 @@ export const algorithm = {
     const stats = () => ({
       comparisons: visitCount,
       swaps: pathLength,
-      complexity: { time: "O(V²)", space: "O(V)" }
+      complexity: { time: 'O(V²)', space: 'O(V)' },
     });
 
     // Helper to get active grid state representation
     const getGridState = (visitedNodes, pathNodes) => {
       const state = [...grid];
-      visitedNodes.forEach(idx => {
+      visitedNodes.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
           state[idx] = STATE_VISITED;
         }
       });
-      pathNodes.forEach(idx => {
+      pathNodes.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
           state[idx] = STATE_PATH;
         }
@@ -91,7 +98,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 0,
       stats: stats(),
-      description: `Starting Dijkstra's algorithm. Start node: (2,1), End node: (5,10)`
+      description: `Starting Dijkstra's algorithm. Start node: (2,1), End node: (5,10)`,
     });
 
     // Dijkstra variables setup
@@ -108,7 +115,7 @@ export const algorithm = {
       pointers: { start: START_INDEX, end: END_INDEX },
       executingLine: 1,
       stats: stats(),
-      description: `Initialize distances: set start node distance to 0, all others to infinity.`
+      description: `Initialize distances: set start node distance to 0, all others to infinity.`,
     });
 
     const visitedOrder = [];
@@ -131,12 +138,16 @@ export const algorithm = {
       snapshots.push({
         array: getGridState(visitedSet, []),
         highlights: u !== -1 ? [u] : [],
-        pointers: u !== -1 ? { current: u, start: START_INDEX, end: END_INDEX } : { start: START_INDEX, end: END_INDEX },
+        pointers:
+          u !== -1
+            ? { current: u, start: START_INDEX, end: END_INDEX }
+            : { start: START_INDEX, end: END_INDEX },
         executingLine: 4,
         stats: stats(),
-        description: u !== -1 
-          ? `Selected unvisited node ${u} with min distance = ${minDist}.`
-          : "No more reachable unvisited nodes."
+        description:
+          u !== -1
+            ? `Selected unvisited node ${u} with min distance = ${minDist}.`
+            : 'No more reachable unvisited nodes.',
       });
 
       if (u === -1 || dist[u] === Infinity || u === END_INDEX) {
@@ -150,9 +161,9 @@ export const algorithm = {
           pointers: { start: START_INDEX, end: END_INDEX },
           executingLine: 5,
           stats: stats(),
-          description: endReached 
-            ? "Reached target end node! Breaking Dijkstra search loop."
-            : "Search complete. End node is unreachable."
+          description: endReached
+            ? 'Reached target end node! Breaking Dijkstra search loop.'
+            : 'Search complete. End node is unreachable.',
         });
         break;
       }
@@ -169,7 +180,7 @@ export const algorithm = {
         pointers: { current: u, start: START_INDEX, end: END_INDEX },
         executingLine: 6,
         stats: stats(),
-        description: `Mark node ${u} as visited and locked.`
+        description: `Mark node ${u} as visited and locked.`,
       });
 
       // Relax neighbors (up, down, left, right)
@@ -185,11 +196,11 @@ export const algorithm = {
       // Snapshot 7: for each neighbor v of u do
       snapshots.push({
         array: getGridState(visitedSet, []),
-        highlights: neighbors.filter(v => !grid[v] === STATE_WALL),
+        highlights: neighbors.filter((v) => !grid[v] === STATE_WALL),
         pointers: { current: u, start: START_INDEX, end: END_INDEX },
         executingLine: 7,
         stats: stats(),
-        description: `Evaluate adjacent neighbors for current node ${u}.`
+        description: `Evaluate adjacent neighbors for current node ${u}.`,
       });
 
       for (const v of neighbors) {
@@ -203,10 +214,15 @@ export const algorithm = {
         snapshots.push({
           array: getGridState(visitedSet, []),
           highlights: [u, v],
-          pointers: { current: u, neighbor: v, start: START_INDEX, end: END_INDEX },
+          pointers: {
+            current: u,
+            neighbor: v,
+            start: START_INDEX,
+            end: END_INDEX,
+          },
           executingLine: 8,
           stats: stats(),
-          description: `Compare distance: path weight to ${v} through ${u} is ${alt} (current is ${dist[v]}).`
+          description: `Compare distance: path weight to ${v} through ${u} is ${alt} (current is ${dist[v]}).`,
         });
 
         if (alt < dist[v]) {
@@ -217,10 +233,15 @@ export const algorithm = {
           snapshots.push({
             array: getGridState(visitedSet, []),
             highlights: [v],
-            pointers: { current: u, neighbor: v, start: START_INDEX, end: END_INDEX },
+            pointers: {
+              current: u,
+              neighbor: v,
+              start: START_INDEX,
+              end: END_INDEX,
+            },
             executingLine: 10, // Corresponds to: dist[v] = alt, parent[v] = u block
             stats: stats(),
-            description: `Update distance: node ${v} new shortest distance is ${alt} via ${u}.`
+            description: `Update distance: node ${v} new shortest distance is ${alt} via ${u}.`,
           });
         }
       }
@@ -241,15 +262,19 @@ export const algorithm = {
       const pathBuild = [];
       for (let step = 0; step < shortestPath.length; step++) {
         pathBuild.push(shortestPath[step]);
-        
+
         // Snapshot 11: reconstruct path
         snapshots.push({
           array: getGridState(visitedSet, pathBuild),
           highlights: [shortestPath[step]],
-          pointers: { pathNode: shortestPath[step], start: START_INDEX, end: END_INDEX },
+          pointers: {
+            pathNode: shortestPath[step],
+            start: START_INDEX,
+            end: END_INDEX,
+          },
           executingLine: 11,
           stats: stats(),
-          description: `Trace back parent: adding node ${shortestPath[step]} to shortest path.`
+          description: `Trace back parent: adding node ${shortestPath[step]} to shortest path.`,
         });
       }
     }
@@ -263,9 +288,9 @@ export const algorithm = {
       stats: stats(),
       description: endReached
         ? `Dijkstra completed! Shortest path length is ${pathLength} nodes (visited ${visitCount} nodes).`
-        : `Dijkstra completed. End node is not reachable from start node.`
+        : `Dijkstra completed. End node is not reachable from start node.`,
     });
 
     return snapshots;
-  }
+  },
 };

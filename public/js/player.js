@@ -76,30 +76,39 @@ export async function initPlayer(algoName) {
     btnBenchmarkSandbox = document.getElementById('btn-benchmark-sandbox');
     sandboxBenchmarkPanel = document.getElementById('sandbox-benchmark-panel');
     btnCloseBenchmark = document.getElementById('btn-close-benchmark');
-    benchmarkChartContainer = document.getElementById('benchmark-chart-container');
+    benchmarkChartContainer = document.getElementById(
+      'benchmark-chart-container',
+    );
     selectHeuristic = document.getElementById('select-heuristic');
-    containerHeuristicSelect = document.getElementById('container-heuristic-select');
+    containerHeuristicSelect = document.getElementById(
+      'container-heuristic-select',
+    );
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
     if (sandboxContainer) sandboxContainer.classList.add('hidden');
     if (sandboxBenchmarkPanel) sandboxBenchmarkPanel.classList.add('hidden');
     if (pseudocodeContainer) pseudocodeContainer.classList.remove('hidden');
-    if (btnToggleSandbox) btnToggleSandbox.textContent = "Sandbox Mode";
-    if (labelCodeType) labelCodeType.textContent = "PSEUDOCODE";
+    if (btnToggleSandbox) btnToggleSandbox.textContent = 'Sandbox Mode';
+    if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
 
     // Setup title and description
     document.getElementById('algo-title').textContent = currentAlgorithm.name;
-    document.getElementById('algo-desc').textContent = currentAlgorithm.description;
+    document.getElementById('algo-desc').textContent =
+      currentAlgorithm.description;
 
     // Populate pseudocode lines
     renderPseudocode(currentAlgorithm.pseudocode);
 
     // Show/hide target input depending on algorithm category
-    const targetInputContainer = document.getElementById('container-target-input');
-    const customInputsContainer = document.getElementById('container-custom-inputs');
+    const targetInputContainer = document.getElementById(
+      'container-target-input',
+    );
+    const customInputsContainer = document.getElementById(
+      'container-custom-inputs',
+    );
     let initialTarget = undefined;
-    
+
     if (customInputsContainer) {
       if (currentAlgorithm.category === 'Pathfinding') {
         customInputsContainer.classList.add('hidden');
@@ -137,7 +146,7 @@ export async function initPlayer(algoName) {
       defaultArray[25] = 1; // STATE_START
       defaultArray[70] = 2; // STATE_END
       const defaultWalls = [17, 29, 41, 53, 65, 43, 44, 45, 46];
-      defaultWalls.forEach(idx => {
+      defaultWalls.forEach((idx) => {
         defaultArray[idx] = 3; // STATE_WALL
       });
     } else {
@@ -153,7 +162,7 @@ export async function initPlayer(algoName) {
     // Load presets dropdown from localStorage
     loadPresetsDropdown();
   } catch (err) {
-    console.error("Failed to initialize visualizer player:", err);
+    console.error('Failed to initialize visualizer player:', err);
   }
 }
 
@@ -161,7 +170,8 @@ function renderPseudocode(lines) {
   pseudocodeContainer.innerHTML = '';
   lines.forEach((line, index) => {
     const lineElem = document.createElement('div');
-    lineElem.className = 'px-4 py-1.5 text-xs sm:text-sm font-mono text-slate-400 border-l-4 border-transparent transition duration-150';
+    lineElem.className =
+      'px-4 py-1.5 text-xs sm:text-sm font-mono text-slate-400 border-l-4 border-transparent transition duration-150';
     // Match indentations
     const spaces = line.match(/^\s*/)[0].length;
     lineElem.style.paddingLeft = `${Math.max(16, spaces * 8 + 16)}px`;
@@ -176,7 +186,7 @@ function resetPlayroom(array, target) {
   currentIndex = 0;
   // Generate snapshots
   snapshots = currentAlgorithm.generator(array, target);
-  
+
   // Render first snapshot
   renderSnapshot(currentIndex);
   updateStatusHUD('READY');
@@ -187,7 +197,16 @@ function renderSnapshot(index) {
   const snapshot = snapshots[index];
 
   // 1. Render data bars (with algorithm category context)
-  renderBars(snapshot.array, snapshot.highlights, snapshot.pointers, currentAlgorithm.category, snapshot.auxLeft, snapshot.auxRight, snapshot.auxLeftStart, snapshot.scores);
+  renderBars(
+    snapshot.array,
+    snapshot.highlights,
+    snapshot.pointers,
+    currentAlgorithm.category,
+    snapshot.auxLeft,
+    snapshot.auxRight,
+    snapshot.auxLeftStart,
+    snapshot.scores,
+  );
 
   // 2. Highlight active pseudocode line
   updateCodeHighlight(snapshot.executingLine);
@@ -214,12 +233,21 @@ function renderSnapshot(index) {
   }
 }
 
-function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRight = null, auxLeftStart = -1, scores = null) {
+function renderBars(
+  arr,
+  highlights,
+  pointers,
+  category,
+  auxLeft = null,
+  auxRight = null,
+  auxLeftStart = -1,
+  scores = null,
+) {
   barsContainer.innerHTML = '';
-  
+
   if (category === 'Pathfinding') {
-    barsContainer.className = "grid-visualizer";
-    
+    barsContainer.className = 'grid-visualizer';
+
     arr.forEach((cellType, index) => {
       const cell = document.createElement('div');
       let cellClass = 'grid-cell';
@@ -228,15 +256,17 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
       else if (cellType === 3) cellClass += ' wall';
       else if (cellType === 4) cellClass += ' visited';
       else if (cellType === 5) cellClass += ' path';
-      
+
       cell.className = cellClass;
       cell.dataset.index = index;
       cell.addEventListener('dragstart', (e) => e.preventDefault());
-      
+
       if (cellType === 1) {
-        cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">S</span>';
+        cell.innerHTML =
+          '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">S</span>';
       } else if (cellType === 2) {
-        cell.innerHTML = '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
+        cell.innerHTML =
+          '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
       } else if (scores && scores[index]) {
         const scoreObj = scores[index];
         const f = scoreObj.f.toFixed(0);
@@ -252,16 +282,16 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
           </div>
         `;
       }
-      
+
       barsContainer.appendChild(cell);
     });
   } else if (category === 'Searching') {
     // Apply array-tape layout styles
-    barsContainer.className = "array-tape";
-    
+    barsContainer.className = 'array-tape';
+
     arr.forEach((value, index) => {
       const cell = document.createElement('div');
-      
+
       let cellClass = 'array-cell normal';
       if (highlights.includes(index)) {
         cellClass = 'array-cell highlight';
@@ -269,25 +299,35 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
       if (pointers.hasOwnProperty('mid') && pointers.mid === index) {
         cellClass = 'array-cell mid';
       }
-      
+
       // Determine if index is out of search space bounds [low, high]
       const hasLow = pointers.hasOwnProperty('low');
       const hasHigh = pointers.hasOwnProperty('high');
-      if ((hasLow && index < pointers.low) || (hasHigh && index > pointers.high)) {
+      if (
+        (hasLow && index < pointers.low) ||
+        (hasHigh && index > pointers.high)
+      ) {
         cellClass += ' diagonal-hatch';
       }
-      
+
       cell.className = cellClass;
-      
+
       // Render pointers labels dynamically above/below the cell
       let badgesHtml = '';
       for (const [pName, pIndex] of Object.entries(pointers)) {
         if (pIndex === index) {
-          const badgeType = pName === 'low' ? 'low' : pName === 'high' ? 'high' : pName === 'mid' ? 'mid' : 'generic';
+          const badgeType =
+            pName === 'low'
+              ? 'low'
+              : pName === 'high'
+                ? 'high'
+                : pName === 'mid'
+                  ? 'mid'
+                  : 'generic';
           badgesHtml += `<div class="pointer-badge ${badgeType}">${pName}</div>`;
         }
       }
-      
+
       cell.innerHTML = `
         ${badgesHtml}
         <span>${value}</span>
@@ -297,27 +337,32 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
     });
   } else {
     // Apply sorting bars layout styles — wrap in a flex column to allow aux canvas below
-    barsContainer.className = "flex flex-col gap-2 w-full";
+    barsContainer.className = 'flex flex-col gap-2 w-full';
     const maxVal = Math.max(...arr, 1);
 
     // Main bar chart row
     const mainRow = document.createElement('div');
-    mainRow.className = 'bar-container gap-2 sm:gap-4 justify-center items-end h-[220px]';
+    mainRow.className =
+      'bar-container gap-2 sm:gap-4 justify-center items-end h-[220px]';
 
     arr.forEach((value, index) => {
       const col = document.createElement('div');
-      col.className = 'flex-1 flex flex-col justify-end items-center h-full relative';
+      col.className =
+        'flex-1 flex flex-col justify-end items-center h-full relative';
 
       let tubeClass = 'bar-tube normal';
       if (highlights.includes(index)) tubeClass = 'bar-tube highlight';
-      if (currentIndex === snapshots.length - 1) tubeClass = 'bar-tube completed';
+      if (currentIndex === snapshots.length - 1)
+        tubeClass = 'bar-tube completed';
 
       let pointerLabels = [];
       for (const [pName, pIndex] of Object.entries(pointers)) {
         if (pIndex === index) pointerLabels.push(pName);
       }
-      const pointerHtml = pointerLabels.length > 0
-        ? `<div class="pointer-badge generic" style="top:-24px">${pointerLabels.join(', ')}</div>` : '';
+      const pointerHtml =
+        pointerLabels.length > 0
+          ? `<div class="pointer-badge generic" style="top:-24px">${pointerLabels.join(', ')}</div>`
+          : '';
 
       const heightPercent = (value / maxVal) * 100;
       col.innerHTML = `
@@ -336,12 +381,14 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
 
       const auxMaxVal = Math.max(...auxLeft, ...auxRight, 1);
       const auxLabel = document.createElement('div');
-      auxLabel.className = 'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-1 px-1';
+      auxLabel.className =
+        'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-1 px-1';
       auxLabel.textContent = `Aux Split — Left[${auxLeft.length}]  |  Right[${auxRight.length}]`;
       auxRow.appendChild(auxLabel);
 
       const auxCanvas = document.createElement('div');
-      auxCanvas.className = 'flex items-end gap-1 h-[80px] border-t border-slate-900 pt-2';
+      auxCanvas.className =
+        'flex items-end gap-1 h-[80px] border-t border-slate-900 pt-2';
 
       // Left sub-array bars (gold)
       auxLeft.forEach((val) => {
@@ -433,10 +480,17 @@ function updateTelemetryHUD(snapshot) {
   const complexitySpaceEl = document.getElementById('stat-complexity-space');
 
   if (stepEl) stepEl.textContent = `${currentIndex + 1} / ${snapshots.length}`;
-  if (compEl) compEl.textContent = snapshot.stats ? snapshot.stats.comparisons : 0;
+  if (compEl)
+    compEl.textContent = snapshot.stats ? snapshot.stats.comparisons : 0;
   if (swapsEl) swapsEl.textContent = snapshot.stats ? snapshot.stats.swaps : 0;
-  if (complexityTimeEl) complexityTimeEl.textContent = snapshot.stats ? snapshot.stats.complexity.time : 'N/A';
-  if (complexitySpaceEl) complexitySpaceEl.textContent = snapshot.stats ? snapshot.stats.complexity.space : 'N/A';
+  if (complexityTimeEl)
+    complexityTimeEl.textContent = snapshot.stats
+      ? snapshot.stats.complexity.time
+      : 'N/A';
+  if (complexitySpaceEl)
+    complexitySpaceEl.textContent = snapshot.stats
+      ? snapshot.stats.complexity.space
+      : 'N/A';
 }
 
 // Renders the call stack HUD panel; shows/hides panel based on callStack presence
@@ -472,7 +526,7 @@ function updateStatusHUD(status) {
   const statusLed = document.getElementById('status-led');
   const statusText = document.getElementById('status-text');
   if (!statusLed || !statusText) return;
-  
+
   if (status === 'RUNNING') {
     statusLed.className = 'led-indicator led-active led-pulse';
     statusText.textContent = 'RUNNING';
@@ -491,7 +545,8 @@ function updateStatusHUD(status) {
 
 function appendConsoleLog(text) {
   const logItem = document.createElement('div');
-  logItem.className = 'py-1 text-[11px] text-slate-300 font-mono flex items-start gap-2 border-b border-slate-900/40';
+  logItem.className =
+    'py-1 text-[11px] text-slate-300 font-mono flex items-start gap-2 border-b border-slate-900/40';
   logItem.innerHTML = `<span class="text-[var(--color-accent-cyan)] select-none">&gt;</span> <span>${text}</span>`;
   consoleLog.appendChild(logItem);
   consoleLog.scrollTop = consoleLog.scrollHeight;
@@ -503,7 +558,7 @@ function startAnimation() {
   isPlaying = true;
   playPauseBtn.innerHTML = '<span>⏸️</span> Pause';
   updateStatusHUD('RUNNING');
-  
+
   playbackInterval = setInterval(() => {
     if (currentIndex < snapshots.length - 1) {
       currentIndex++;
@@ -571,14 +626,14 @@ function bindEvents() {
     }
 
     // Sync active state on preset buttons
-    document.querySelectorAll('.speed-preset-btn').forEach(btn => {
+    document.querySelectorAll('.speed-preset-btn').forEach((btn) => {
       const btnRate = parseFloat(btn.dataset.speed);
       btn.classList.toggle('speed-preset-active', btnRate === rate);
     });
   });
 
   // Speed preset buttons
-  document.querySelectorAll('.speed-preset-btn').forEach(btn => {
+  document.querySelectorAll('.speed-preset-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const rate = parseFloat(btn.dataset.speed);
 
@@ -589,7 +644,9 @@ function bindEvents() {
       speedValueText.textContent = `${rate}x`;
 
       // Toggle active highlight
-      document.querySelectorAll('.speed-preset-btn').forEach(b => b.classList.remove('speed-preset-active'));
+      document
+        .querySelectorAll('.speed-preset-btn')
+        .forEach((b) => b.classList.remove('speed-preset-active'));
       btn.classList.add('speed-preset-active');
 
       // Restart animation if playing
@@ -604,14 +661,15 @@ function bindEvents() {
   btnApplyInput.addEventListener('click', () => {
     const val = customInput.value.trim();
     if (!val) return;
-    
+
     // Parse values from comma separated inputs
-    const parsed = val.split(',')
-      .map(v => parseInt(v.trim(), 10))
-      .filter(v => !isNaN(v));
+    const parsed = val
+      .split(',')
+      .map((v) => parseInt(v.trim(), 10))
+      .filter((v) => !isNaN(v));
 
     if (parsed.length < 3 || parsed.length > 15) {
-      alert("Please enter between 3 and 15 numbers.");
+      alert('Please enter between 3 and 15 numbers.');
       return;
     }
 
@@ -621,7 +679,7 @@ function bindEvents() {
       if (targetInput) {
         const parsedTarget = parseInt(targetInput.value.trim(), 10);
         if (isNaN(parsedTarget)) {
-          alert("Please enter a valid target number.");
+          alert('Please enter a valid target number.');
           return;
         }
         targetVal = parsedTarget;
@@ -656,28 +714,31 @@ function bindEvents() {
     btnSavePreset.addEventListener('click', () => {
       const val = customInput.value.trim();
       if (!val) {
-        alert("Please enter a valid comma-separated array first.");
+        alert('Please enter a valid comma-separated array first.');
         return;
       }
-      
-      const parsed = val.split(',')
-        .map(v => parseInt(v.trim(), 10))
-        .filter(v => !isNaN(v));
+
+      const parsed = val
+        .split(',')
+        .map((v) => parseInt(v.trim(), 10))
+        .filter((v) => !isNaN(v));
 
       if (parsed.length < 3 || parsed.length > 15) {
-        alert("Please enter between 3 and 15 numbers.");
+        alert('Please enter between 3 and 15 numbers.');
         return;
       }
 
-      const presetName = prompt("Enter a name for this custom array preset:");
+      const presetName = prompt('Enter a name for this custom array preset:');
       if (!presetName) return;
       const trimmedName = presetName.trim();
       if (!trimmedName) return;
 
-      const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
+      const storedPresets = JSON.parse(
+        localStorage.getItem('algovisual_presets') || '[]',
+      );
       storedPresets.push({ name: trimmedName, array: val });
       localStorage.setItem('algovisual_presets', JSON.stringify(storedPresets));
-      
+
       loadPresetsDropdown();
       // Select the newly added option
       if (selectPreset) {
@@ -694,9 +755,9 @@ function bindEvents() {
         // Switch to sandbox mode
         sandboxContainer.classList.remove('hidden');
         pseudocodeContainer.classList.add('hidden');
-        btnToggleSandbox.textContent = "PSEUDOCODE MODE";
-        if (labelCodeType) labelCodeType.textContent = "SANDBOX";
-        
+        btnToggleSandbox.textContent = 'PSEUDOCODE MODE';
+        if (labelCodeType) labelCodeType.textContent = 'SANDBOX';
+
         // Populate textarea with current algorithm's generator function code
         if (!sandboxTextarea.value.trim()) {
           sandboxTextarea.value = currentAlgorithm.generator.toString();
@@ -705,51 +766,58 @@ function bindEvents() {
         // Switch to pseudocode mode
         sandboxContainer.classList.add('hidden');
         pseudocodeContainer.classList.remove('hidden');
-        btnToggleSandbox.textContent = "SANDBOX MODE";
-        if (labelCodeType) labelCodeType.textContent = "PSEUDOCODE";
+        btnToggleSandbox.textContent = 'SANDBOX MODE';
+        if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
       }
     });
   }
 
-function instrumentSandboxCode(code) {
-  const firstBraceIndex = code.indexOf('{');
-  if (firstBraceIndex === -1) return code;
+  function instrumentSandboxCode(code) {
+    const firstBraceIndex = code.indexOf('{');
+    if (firstBraceIndex === -1) return code;
 
-  let instrumented = code.slice(0, firstBraceIndex + 1) + 
-    "\n  let _loopCount = 0;\n" + 
-    code.slice(firstBraceIndex + 1);
+    let instrumented =
+      code.slice(0, firstBraceIndex + 1) +
+      '\n  let _loopCount = 0;\n' +
+      code.slice(firstBraceIndex + 1);
 
-  const guard = 'if (++_loopCount > 50000) { throw new Error("Potential infinite loop detected (limit of 50000 iterations exceeded). Execution aborted."); } ';
+    const guard =
+      'if (++_loopCount > 50000) { throw new Error("Potential infinite loop detected (limit of 50000 iterations exceeded). Execution aborted."); } ';
 
-  // Combined single regex to match for, while, and do loops followed by open curly braces
-  return instrumented.replace(/(for|while|do)\s*(\([^)]*\))?\s*\{/g, (match, type, cond) => {
-    return `${type}${cond || ''} { ${guard}`;
-  });
-}
+    // Combined single regex to match for, while, and do loops followed by open curly braces
+    return instrumented.replace(
+      /(for|while|do)\s*(\([^)]*\))?\s*\{/g,
+      (match, type, cond) => {
+        return `${type}${cond || ''} { ${guard}`;
+      },
+    );
+  }
 
   // Run custom sandbox algorithm code
   if (btnRunSandbox) {
     btnRunSandbox.addEventListener('click', () => {
       const userCode = sandboxTextarea.value.trim();
       if (!userCode) {
-        alert("Please enter your algorithm generator function code.");
+        alert('Please enter your algorithm generator function code.');
         return;
       }
-      
+
       try {
         // Instrument user code to insert loop guards
         const instrumented = instrumentSandboxCode(userCode);
 
         // Evaluate the function body typed in the textarea
         const compiledFn = new Function(`return (${instrumented})`)();
-        
+
         if (typeof compiledFn !== 'function') {
-          throw new Error("Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }");
+          throw new Error(
+            'Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }',
+          );
         }
-        
+
         // Set as the current generator
         currentAlgorithm.generator = compiledFn;
-        
+
         // Retrieve target if searching
         let targetVal = undefined;
         if (currentAlgorithm.category === 'Searching') {
@@ -761,13 +829,13 @@ function instrumentSandboxCode(code) {
             }
           }
         }
-        
+
         // Re-initialize playroom
         resetPlayroom(defaultArray, targetVal);
-        alert("Custom sandbox algorithm loaded successfully!");
+        alert('Custom sandbox algorithm loaded successfully!');
       } catch (err) {
-        console.error("Sandbox evaluation error:", err);
-        alert("Compilation or runtime error:\n" + err.message);
+        console.error('Sandbox evaluation error:', err);
+        alert('Compilation or runtime error:\n' + err.message);
       }
     });
   }
@@ -784,7 +852,9 @@ function instrumentSandboxCode(code) {
     btnBenchmarkSandbox.addEventListener('click', () => {
       const userCode = sandboxTextarea.value.trim();
       if (!userCode) {
-        alert("Please enter your algorithm generator function code to benchmark.");
+        alert(
+          'Please enter your algorithm generator function code to benchmark.',
+        );
         return;
       }
 
@@ -792,10 +862,13 @@ function instrumentSandboxCode(code) {
         const instrumented = instrumentSandboxCode(userCode);
         const compiledFn = new Function(`return (${instrumented})`)();
         if (typeof compiledFn !== 'function') {
-          throw new Error("Parsed code is not a function.");
+          throw new Error('Parsed code is not a function.');
         }
 
-        const sizes = currentAlgorithm.category === 'Pathfinding' ? [12, 24, 48, 96] : [10, 50, 100, 250, 500, 1000];
+        const sizes =
+          currentAlgorithm.category === 'Pathfinding'
+            ? [12, 24, 48, 96]
+            : [10, 50, 100, 250, 500, 1000];
         const dataPoints = [];
 
         for (const size of sizes) {
@@ -807,7 +880,9 @@ function instrumentSandboxCode(code) {
               testInput[size - 2] = 2;
             }
           } else {
-            testInput = Array.from({ length: size }, () => Math.floor(Math.random() * size));
+            testInput = Array.from({ length: size }, () =>
+              Math.floor(Math.random() * size),
+            );
           }
 
           let minTime = Infinity;
@@ -829,12 +904,12 @@ function instrumentSandboxCode(code) {
         const chartH = height - 2 * padding;
 
         const maxValX = sizes[sizes.length - 1];
-        const maxValY = Math.max(...dataPoints.map(d => d.time)) || 0.001;
+        const maxValY = Math.max(...dataPoints.map((d) => d.time)) || 0.001;
 
         // Map data points to SVG coordinates
-        const points = dataPoints.map(d => {
+        const points = dataPoints.map((d) => {
           const x = padding + (d.size / maxValX) * chartW;
-          const y = (height - padding) - (d.time / maxValY) * chartH;
+          const y = height - padding - (d.time / maxValY) * chartH;
           return { x, y, size: d.size, time: d.time };
         });
 
@@ -846,7 +921,7 @@ function instrumentSandboxCode(code) {
 
         // Render ticks and dots
         let dotsHTML = '';
-        points.forEach(p => {
+        points.forEach((p) => {
           dotsHTML += `
             <circle cx="${p.x}" cy="${p.y}" r="3" fill="#00f3ff">
               <title>Size: ${p.size}, Time: ${p.time.toFixed(4)}ms</title>
@@ -875,10 +950,9 @@ function instrumentSandboxCode(code) {
 
         benchmarkChartContainer.innerHTML = svgHTML;
         sandboxBenchmarkPanel.classList.remove('hidden');
-
       } catch (err) {
-        console.error("Benchmark failed:", err);
-        alert("Compilation or runtime error:\n" + err.message);
+        console.error('Benchmark failed:', err);
+        alert('Compilation or runtime error:\n' + err.message);
       }
     });
   }
@@ -890,7 +964,7 @@ function instrumentSandboxCode(code) {
       if (audioToggleIcon) {
         audioToggleIcon.textContent = isAudioMuted ? '🔇' : '🔊';
       }
-      
+
       // Initialize AudioContext on user interaction to comply with browser autoplay policies
       if (!isAudioMuted && !audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -902,13 +976,15 @@ function instrumentSandboxCode(code) {
   if (btnExportLog) {
     btnExportLog.addEventListener('click', () => {
       const logs = Array.from(consoleLog.querySelectorAll('div'))
-        .map(div => div.textContent)
+        .map((div) => div.textContent)
         .join('\n');
       if (!logs) {
-        alert("Execution logs are empty. Run the algorithm first to accumulate logs.");
+        alert(
+          'Execution logs are empty. Run the algorithm first to accumulate logs.',
+        );
         return;
       }
-      
+
       const blob = new Blob([logs], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -926,20 +1002,21 @@ function instrumentSandboxCode(code) {
     narrativeText.addEventListener('dblclick', () => {
       // Prevent editing if animation is currently playing
       if (isPlaying) {
-        alert("Please pause the playback first before editing narration.");
+        alert('Please pause the playback first before editing narration.');
         return;
       }
-      
+
       const currentDesc = snapshots[currentIndex]?.description || '';
       const input = document.createElement('textarea');
       input.value = currentDesc;
-      input.className = "w-full bg-slate-950 text-xs font-mono text-cyan-400 border border-slate-900 rounded p-2 focus:outline-none focus:border-cyan-500 min-h-[44px]";
-      
+      input.className =
+        'w-full bg-slate-950 text-xs font-mono text-cyan-400 border border-slate-900 rounded p-2 focus:outline-none focus:border-cyan-500 min-h-[44px]';
+
       // Swap elements
       const parent = narrativeText.parentNode;
       parent.replaceChild(input, narrativeText);
       input.focus();
-      
+
       const saveChanges = () => {
         const newVal = input.value.trim();
         if (newVal && snapshots[currentIndex]) {
@@ -948,7 +1025,7 @@ function instrumentSandboxCode(code) {
         }
         parent.replaceChild(narrativeText, input);
       };
-      
+
       input.addEventListener('blur', saveChanges);
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -989,7 +1066,8 @@ function instrumentSandboxCode(code) {
     });
 
     barsContainer.addEventListener('mouseover', (e) => {
-      if (currentAlgorithm.category !== 'Pathfinding' || !isGridMouseDown) return;
+      if (currentAlgorithm.category !== 'Pathfinding' || !isGridMouseDown)
+        return;
       const cell = e.target.closest('.grid-cell');
       if (!cell) return;
 
@@ -1018,8 +1096,10 @@ export function loadPresetsDropdown() {
     <option value="">-- Presets --</option>
     <option value="23,45,12,56,34,18,9,41">Default Array</option>
   `;
-  const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
-  storedPresets.forEach(preset => {
+  const storedPresets = JSON.parse(
+    localStorage.getItem('algovisual_presets') || '[]',
+  );
+  storedPresets.forEach((preset) => {
     const opt = document.createElement('option');
     opt.value = preset.array;
     opt.textContent = preset.name;
@@ -1041,7 +1121,9 @@ function playToneForValue(value) {
     // Map value (1 to 100) to frequency range (220Hz to 880Hz)
     const minFreq = 220;
     const maxFreq = 880;
-    const freq = minFreq + (Math.max(0, Math.min(99, value - 1)) / 99) * (maxFreq - minFreq);
+    const freq =
+      minFreq +
+      (Math.max(0, Math.min(99, value - 1)) / 99) * (maxFreq - minFreq);
 
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
@@ -1051,7 +1133,10 @@ function playToneForValue(value) {
 
     // Dynamic volume ramp to prevent audio clicks/pops
     gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audioCtx.currentTime + 0.12,
+    );
 
     osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
@@ -1059,6 +1144,6 @@ function playToneForValue(value) {
     osc.start();
     osc.stop(audioCtx.currentTime + 0.12);
   } catch (err) {
-    console.error("Audio sonification synthesis failed:", err);
+    console.error('Audio sonification synthesis failed:', err);
   }
 }
