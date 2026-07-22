@@ -44,6 +44,7 @@ let btnCloseBenchmark;
 let benchmarkChartContainer;
 let selectHeuristic;
 let containerHeuristicSelect;
+let btnRandomize;
 
 export async function initPlayer(algoName) {
   try {
@@ -85,6 +86,7 @@ export async function initPlayer(algoName) {
     containerHeuristicSelect = document.getElementById(
       'container-heuristic-select',
     );
+    btnRandomize = document.getElementById('btn-randomize');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -790,6 +792,36 @@ function bindEvents() {
           targetInput.value = '34';
           targetVal = 34;
         }
+      }
+      resetPlayroom(defaultArray, targetVal);
+    });
+  }
+
+  // Click event on btn-randomize
+  if (btnRandomize) {
+    btnRandomize.addEventListener('click', () => {
+      const lenInput = document.getElementById('random-length');
+      const minInput = document.getElementById('random-min');
+      const maxInput = document.getElementById('random-max');
+
+      const len = Math.min(15, Math.max(3, parseInt(lenInput?.value, 10) || 8));
+      const minVal = Math.min(98, Math.max(1, parseInt(minInput?.value, 10) || 1));
+      const maxVal = Math.min(99, Math.max(minVal + 1, parseInt(maxInput?.value, 10) || 99));
+
+      const randomArr = Array.from({ length: len }, () =>
+        Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal
+      );
+
+      defaultArray = randomArr;
+      if (customInput) customInput.value = randomArr.join(',');
+      if (selectPreset) selectPreset.value = '';
+
+      let targetVal = undefined;
+      if (currentAlgorithm.category === 'Searching') {
+        // Pick a random element from the generated array as the target
+        targetVal = randomArr[Math.floor(Math.random() * randomArr.length)];
+        const targetInput = document.getElementById('input-target');
+        if (targetInput) targetInput.value = targetVal;
       }
       resetPlayroom(defaultArray, targetVal);
     });
