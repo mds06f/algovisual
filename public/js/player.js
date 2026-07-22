@@ -37,6 +37,13 @@ let btnAudioToggle;
 let audioToggleIcon;
 let audioCtx = null;
 let isAudioMuted = true;
+let soundWaveform = 'sine';
+let soundPitchMultiplier = 1.0;
+let btnAudioSettings;
+let audioSettingsDrawer;
+let selectWaveform;
+let sliderPitch;
+let textPitch;
 let btnExportLog;
 let stepCounterText;
 let btnBenchmarkSandbox;
@@ -76,6 +83,11 @@ export async function initPlayer(algoName) {
     labelCodeType = document.getElementById('label-code-type');
     btnAudioToggle = document.getElementById('btn-audio-toggle');
     audioToggleIcon = document.getElementById('audio-toggle-icon');
+    btnAudioSettings = document.getElementById('btn-audio-settings');
+    audioSettingsDrawer = document.getElementById('audio-settings-drawer');
+    selectWaveform = document.getElementById('select-waveform');
+    sliderPitch = document.getElementById('slider-pitch');
+    textPitch = document.getElementById('text-pitch');
     btnExportLog = document.getElementById('btn-export-log');
     stepCounterText = document.getElementById('step-counter-text');
     btnBenchmarkSandbox = document.getElementById('btn-benchmark-sandbox');
@@ -1105,6 +1117,30 @@ function bindEvents() {
     });
   }
 
+  // Toggle Audio Settings Drawer
+  if (btnAudioSettings && audioSettingsDrawer) {
+    btnAudioSettings.addEventListener('click', () => {
+      audioSettingsDrawer.classList.toggle('hidden');
+    });
+  }
+
+  // Sound Waveform selection
+  if (selectWaveform) {
+    selectWaveform.addEventListener('change', (e) => {
+      soundWaveform = e.target.value;
+    });
+  }
+
+  // Sound Pitch Multiplier selection
+  if (sliderPitch) {
+    sliderPitch.addEventListener('input', (e) => {
+      soundPitchMultiplier = parseFloat(e.target.value);
+      if (textPitch) {
+        textPitch.textContent = `${soundPitchMultiplier.toFixed(1)}x`;
+      }
+    });
+  }
+
   // Download Debug Log
   if (btnExportLog) {
     btnExportLog.addEventListener('click', () => {
@@ -1261,8 +1297,8 @@ function playToneForValue(value) {
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.type = soundWaveform;
+    osc.frequency.setValueAtTime(freq * soundPitchMultiplier, audioCtx.currentTime);
 
     // Dynamic volume ramp to prevent audio clicks/pops
     gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
