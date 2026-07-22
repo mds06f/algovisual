@@ -267,9 +267,24 @@ function renderBars(arr, highlights, pointers, category, auxLeft = null, auxRigh
       let cellClass = 'array-cell normal';
       if (highlights.includes(index)) {
         cellClass = 'array-cell highlight';
+        
+        // Render target found indicator for binarySearch or linearSearch
+        const currentSnapshot = snapshots[currentIndex];
+        if (currentSnapshot && currentSnapshot.description && currentSnapshot.description.includes("Found target")) {
+          const targetInput = document.getElementById('input-target');
+          if (targetInput) {
+            const targetVal = parseInt(targetInput.value.trim(), 10);
+            if (!isNaN(targetVal) && value === targetVal) {
+              cellClass = 'array-cell success';
+            }
+          }
+        }
       }
       if (pointers.hasOwnProperty('mid') && pointers.mid === index) {
-        cellClass = 'array-cell mid';
+        // Only override to mid if it's not the success cell
+        if (cellClass !== 'array-cell success') {
+          cellClass = 'array-cell mid';
+        }
       }
       
       // Determine if index is out of search space bounds [low, high]

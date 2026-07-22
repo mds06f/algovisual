@@ -255,6 +255,28 @@ body::before {
   transform: scale(1.1);
 }
 
+.array-cell.success {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.65);
+  transform: scale(1.12);
+  animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
+    transform: scale(1.15);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+}
+
 /* Excluded cells diagonal hatch pattern */
 .diagonal-hatch {
   background-image: repeating-linear-gradient(45deg, rgba(6, 182, 212, 0.025) 0px, rgba(6, 182, 212, 0.025) 2px, transparent 2px, transparent 8px);
@@ -617,6 +639,13 @@ select.tech-input option {
   border-color: var(--color-accent-emerald) !important;
   color: var(--color-accent-emerald) !important;
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+.light-theme .array-cell.success {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25) !important;
 }
 
 .light-theme .diagonal-hatch {
