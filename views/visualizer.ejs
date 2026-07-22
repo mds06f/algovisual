@@ -241,8 +241,12 @@
 
           <!-- Sandbox Editor View -->
           <div id="sandbox-container" class="hidden flex-1 flex flex-col bg-slate-950/15 overflow-hidden">
-            <textarea id="sandbox-textarea" class="flex-1 w-full bg-slate-950/40 p-4 text-xs font-mono text-cyan-400 border-none outline-none resize-none focus:ring-0" spellcheck="false"></textarea>
-            
+            <!-- Syntax-highlight backdrop + transparent textarea overlay -->
+            <div id="sandbox-editor-wrap" class="flex-1 relative overflow-hidden">
+              <div id="sandbox-highlight" class="sandbox-highlight" aria-hidden="true"></div>
+              <textarea id="sandbox-textarea" class="sandbox-textarea" spellcheck="false"></textarea>
+            </div>
+
             <!-- Sandbox Benchmark Panel (initially hidden) -->
             <div id="sandbox-benchmark-panel" class="hidden border-t border-slate-900 bg-slate-950/80 p-4 flex flex-col gap-2">
               <div class="flex justify-between items-center">

@@ -842,6 +842,7 @@ function bindEvents() {
         if (!sandboxTextarea.value.trim()) {
           sandboxTextarea.value = currentAlgorithm.generator.toString();
         }
+        syncHighlight();
       } else {
         // Switch to pseudocode mode
         sandboxContainer.classList.add('hidden');
@@ -850,6 +851,38 @@ function bindEvents() {
         if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
       }
     });
+  }
+
+  // ── Syntax Highlighter ──────────────────────────────────────────────────
+  function syncHighlight() {
+    const highlightEl = document.getElementById('sandbox-highlight');
+    if (!sandboxTextarea || !highlightEl) return;
+    const raw = sandboxTextarea.value;
+    const escaped = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const highlighted = escaped
+      // Single-line comments
+      .replace(/((\/\/)[^\n]*)/g, '<span class="sh-comment">$1</span>')
+      // Strings (double, single, backtick)
+      .replace(/("[^"\\]*"|'[^'\\]*'|`[^`\\]*`)/g, '<span class="sh-string">$1</span>')
+      // yield keyword (before generic keywords)
+      .replace(/\b(yield)\b/g, '<span class="sh-yield">$1</span>')
+      // JS keywords
+      .replace(/\b(function|const|let|var|return|if|else|for|while|do|break|continue|new|true|false|null|undefined|typeof|instanceof|import|export|default|class|extends|this|throw|try|catch|finally|of|in|async|await)\b/g, '<span class="sh-keyword">$1</span>')
+      // Numbers
+      .replace(/\b(\d+\.?\d*)\b/g, '<span class="sh-number">$1</span>');
+    highlightEl.innerHTML = highlighted + '\n'; // trailing \n keeps scroll in sync
+    // Mirror scroll
+    highlightEl.scrollTop = sandboxTextarea.scrollTop;
+    highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+  }
+
+  if (sandboxTextarea) {
+    sandboxTextarea.addEventListener('input', syncHighlight);
+    sandboxTextarea.addEventListener('scroll', syncHighlight);
+    sandboxTextarea.addEventListener('keydown', syncHighlight);
   }
 
   function instrumentSandboxCode(code) {
