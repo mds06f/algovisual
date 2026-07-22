@@ -1,21 +1,22 @@
 // public/algorithms/insertionSort.js
 
 export const algorithm = {
-  name: "Insertion Sort",
-  category: "Sorting",
-  description: "Insertion Sort is a simple sorting algorithm that builds the final sorted array one item at a time. It is much less efficient on large lists than more advanced algorithms such as quicksort, heapsort, or merge sort.",
+  name: 'Insertion Sort',
+  category: 'Sorting',
+  description:
+    'Insertion Sort is a simple sorting algorithm that builds the final sorted array one item at a time. It is much less efficient on large lists than more advanced algorithms such as quicksort, heapsort, or merge sort.',
   pseudocode: [
-    "procedure insertionSort(A : list of sortable items)",
-    "  n = length(A)",
-    "  for i = 1 to n - 1 do",
-    "    key = A[i]",
-    "    j = i - 1",
-    "    while j >= 0 and A[j] > key do",
-    "      A[j + 1] = A[j]",
-    "      j = j - 1",
-    "    A[j + 1] = key"
+    'procedure insertionSort(A : list of sortable items)',
+    '  n = length(A)',
+    '  for i = 1 to n - 1 do',
+    '    key = A[i]',
+    '    j = i - 1',
+    '    while j >= 0 and A[j] > key do',
+    '      A[j + 1] = A[j]',
+    '      j = j - 1',
+    '    A[j + 1] = key',
   ],
-  generator: function(arr) {
+  generator: function (arr) {
     const snapshots = [];
     const A = [...arr];
     const n = A.length;
@@ -26,7 +27,7 @@ export const algorithm = {
     const stats = () => ({
       comparisons: comparisonCount,
       swaps: swapCount,
-      complexity: { time: "O(n²)", space: "O(1)" }
+      complexity: { time: 'O(n²)', space: 'O(1)' },
     });
 
     // Snapshot 0: Initial state (procedure insertionSort...)
@@ -36,7 +37,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 0,
       stats: stats(),
-      description: `Starting Insertion Sort with array: [${A.join(', ')}]`
+      description: `Starting Insertion Sort with array: [${A.join(', ')}]`,
     });
 
     // Snapshot 1: n = length(A)
@@ -46,7 +47,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 1,
       stats: stats(),
-      description: `Set list length n = ${n}`
+      description: `Set list length n = ${n}`,
     });
 
     for (let i = 1; i < n; i++) {
@@ -57,7 +58,7 @@ export const algorithm = {
         pointers: { i: i },
         executingLine: 2,
         stats: stats(),
-        description: `Set outer index i = ${i} (value: ${A[i]}).`
+        description: `Set outer index i = ${i} (value: ${A[i]}).`,
       });
 
       const key = A[i];
@@ -68,7 +69,7 @@ export const algorithm = {
         pointers: { i: i, key: String(key) },
         executingLine: 3,
         stats: stats(),
-        description: `Store current element A[${i}] (${key}) in key.`
+        description: `Store current element A[${i}] (${key}) in key.`,
       });
 
       let j = i - 1;
@@ -79,12 +80,12 @@ export const algorithm = {
         pointers: { i: i, j: j, key: String(key) },
         executingLine: 4,
         stats: stats(),
-        description: `Initialize inner index j = ${j} (value: ${A[j]}).`
+        description: `Initialize inner index j = ${j} (value: ${A[j]}).`,
       });
 
       while (j >= 0) {
         comparisonCount++;
-        
+
         // Snapshot 5: while j >= 0 and A[j] > key do
         snapshots.push({
           array: [...A],
@@ -92,7 +93,7 @@ export const algorithm = {
           pointers: { i: i, j: j, key: String(key) },
           executingLine: 5,
           stats: stats(),
-          description: `Compare: is j >= 0 and A[${j}] (${A[j]}) > key (${key})?`
+          description: `Compare: is j >= 0 and A[${j}] (${A[j]}) > key (${key})?`,
         });
 
         if (A[j] > key) {
@@ -106,7 +107,7 @@ export const algorithm = {
             pointers: { i: i, j: j, key: String(key) },
             executingLine: 6,
             stats: stats(),
-            description: `Shift element at index ${j} (${A[j]}) to index ${j + 1}.`
+            description: `Shift element at index ${j} (${A[j]}) to index ${j + 1}.`,
           });
 
           j = j - 1;
@@ -117,7 +118,7 @@ export const algorithm = {
             pointers: { i: i, j: j, key: String(key) },
             executingLine: 7,
             stats: stats(),
-            description: `Decrement inner index j to ${j}.`
+            description: `Decrement inner index j to ${j}.`,
           });
         } else {
           break;
@@ -134,7 +135,7 @@ export const algorithm = {
           pointers: { i: i, key: String(key) },
           executingLine: 5,
           stats: stats(),
-          description: `Loop condition false: j (${j}) is less than 0.`
+          description: `Loop condition false: j (${j}) is less than 0.`,
         });
       } else {
         // Snapshot 5 alternate: A[j] <= key
@@ -144,7 +145,7 @@ export const algorithm = {
           pointers: { i: i, j: j, key: String(key) },
           executingLine: 5,
           stats: stats(),
-          description: `Loop condition false: A[${j}] (${A[j]}) is not greater than key (${key}).`
+          description: `Loop condition false: A[${j}] (${A[j]}) is not greater than key (${key}).`,
         });
       }
 
@@ -158,7 +159,7 @@ export const algorithm = {
         pointers: { i: i, key: String(key) },
         executingLine: 8,
         stats: stats(),
-        description: `Insert key (${key}) at index ${j + 1}.`
+        description: `Insert key (${key}) at index ${j + 1}.`,
       });
     }
 
@@ -169,9 +170,9 @@ export const algorithm = {
       pointers: {},
       executingLine: 8,
       stats: stats(),
-      description: `Array is fully sorted! Final state: [${A.join(', ')}]`
+      description: `Array is fully sorted! Final state: [${A.join(', ')}]`,
     });
 
     return snapshots;
-  }
+  },
 };

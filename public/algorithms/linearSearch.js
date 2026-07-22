@@ -1,28 +1,29 @@
 // public/algorithms/linearSearch.js
 
 export const algorithm = {
-  name: "Linear Search",
-  category: "Searching",
-  description: "Linear Search is a simple search algorithm that checks every element in the list sequentially until the target value is found or the list ends.",
+  name: 'Linear Search',
+  category: 'Searching',
+  description:
+    'Linear Search is a simple search algorithm that checks every element in the list sequentially until the target value is found or the list ends.',
   pseudocode: [
-    "procedure linearSearch(A : list of items, target)",
-    "  n = length(A)",
-    "  for i = 0 to n - 1 do",
-    "    if A[i] == target then",
-    "      return i",
-    "  return -1"
+    'procedure linearSearch(A : list of items, target)',
+    '  n = length(A)',
+    '  for i = 0 to n - 1 do',
+    '    if A[i] == target then',
+    '      return i',
+    '  return -1',
   ],
-  generator: function(arr, targetVal) {
+  generator: function (arr, targetVal) {
     const snapshots = [];
     const A = [...arr];
     const n = A.length;
-    const target = (targetVal !== undefined) ? targetVal : 34;
+    const target = targetVal !== undefined ? targetVal : 34;
 
     let comparisonCount = 0;
     const stats = () => ({
       comparisons: comparisonCount,
       swaps: 0,
-      complexity: { time: "O(n)", space: "O(1)" }
+      complexity: { time: 'O(n)', space: 'O(1)' },
     });
 
     // Snapshot 0: Initial state (procedure linearSearch...)
@@ -32,7 +33,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 0,
       stats: stats(),
-      description: `Starting Linear Search for target = ${target} on array: [${A.join(', ')}]`
+      description: `Starting Linear Search for target = ${target} on array: [${A.join(', ')}]`,
     });
 
     // Snapshot 1: n = length(A)
@@ -42,7 +43,7 @@ export const algorithm = {
       pointers: {},
       executingLine: 1,
       stats: stats(),
-      description: `Set list length n = ${n}`
+      description: `Set list length n = ${n}`,
     });
 
     let foundIndex = -1;
@@ -55,7 +56,7 @@ export const algorithm = {
         pointers: { i: i },
         executingLine: 2,
         stats: stats(),
-        description: `Loop index i = ${i}. Scanning element at index ${i} (value: ${A[i]}).`
+        description: `Loop index i = ${i}. Scanning element at index ${i} (value: ${A[i]}).`,
       });
 
       comparisonCount++;
@@ -67,7 +68,7 @@ export const algorithm = {
         pointers: { i: i },
         executingLine: 3,
         stats: stats(),
-        description: `Compare: is A[${i}] (${A[i]}) == target (${target})?`
+        description: `Compare: is A[${i}] (${A[i]}) == target (${target})?`,
       });
 
       if (A[i] === target) {
@@ -79,7 +80,7 @@ export const algorithm = {
           pointers: { i: i },
           executingLine: 4,
           stats: stats(),
-          description: `Found target ${target} at index ${i}! Returning index ${i}.`
+          description: `Found target ${target} at index ${i}! Returning index ${i}.`,
         });
         break;
       }
@@ -93,10 +94,10 @@ export const algorithm = {
         pointers: {},
         executingLine: 5,
         stats: stats(),
-        description: `Target ${target} not found in array. Returning -1.`
+        description: `Target ${target} not found in array. Returning -1.`,
       });
     }
 
     return snapshots;
-  }
+  },
 };
