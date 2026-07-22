@@ -110,7 +110,7 @@
     </div>
 
     <!-- Playback controls -->
-    <div class="cyber-panel px-5 py-3 flex items-center gap-3">
+    <div class="cyber-panel px-5 py-3 flex items-center gap-3 flex-wrap">
       <button id="btn-compare-prev" class="tech-btn p-2 rounded text-xs" title="Step Back">⏮</button>
       <button id="btn-compare-play" class="tech-btn tech-btn-primary px-5 py-2 rounded text-xs font-bold uppercase tracking-wider">▶ Play</button>
       <button id="btn-compare-next" class="tech-btn p-2 rounded text-xs" title="Step Forward">⏭</button>
@@ -120,6 +120,10 @@
         <span id="compare-speed-text" class="text-[10px] text-[#00e1d9] font-bold font-technical">1.0x</span>
       </div>
       <span id="compare-step-text" class="text-[10px] text-slate-400 font-technical border border-slate-900 bg-slate-950 px-2 py-1.5 rounded min-w-[80px] text-center">Step 0 / 0</span>
+      <div class="flex items-center gap-1 ml-auto">
+        <button id="btn-export-json" class="tech-btn text-[9px] px-2 py-1.5 rounded font-technical font-bold uppercase" title="Export report as JSON">Export JSON</button>
+        <button id="btn-export-csv" class="tech-btn text-[9px] px-2 py-1.5 rounded font-technical font-bold uppercase" title="Export report as CSV">Export CSV</button>
+      </div>
     </div>
   </div>
 
@@ -339,6 +343,46 @@
     });
     loadBtn.addEventListener('click', () => {
       loadAlgorithms(selectAlgoA.value, selectAlgoB.value);
+    });
+
+    // ── Export Report ──────────────────────────────────────────────────────────
+    function buildReportData() {
+      const lastA = snapshotsA[snapshotsA.length - 1];
+      const lastB = snapshotsB[snapshotsB.length - 1];
+      return {
+        algorithmA: { name: titleA.textContent, comparisons: lastA?.stats?.comparisons ?? 0, swaps: lastA?.stats?.swaps ?? 0, steps: snapshotsA.length },
+        algorithmB: { name: titleB.textContent, comparisons: lastB?.stats?.comparisons ?? 0, swaps: lastB?.stats?.swaps ?? 0, steps: snapshotsB.length },
+        generatedAt: new Date().toISOString(),
+      };
+    }
+
+    function triggerDownload(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+      if (!snapshotsA.length || !snapshotsB.length) { alert('Load two algorithms first.'); return; }
+      const data = buildReportData();
+      triggerDownload(JSON.stringify(data, null, 2), 'algovisual_report.json', 'application/json');
+    });
+
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      if (!snapshotsA.length || !snapshotsB.length) { alert('Load two algorithms first.'); return; }
+      const d = buildReportData();
+      const csv = [
+        'Algorithm,Comparisons,Swaps,Steps',
+        `${d.algorithmA.name},${d.algorithmA.comparisons},${d.algorithmA.swaps},${d.algorithmA.steps}`,
+        `${d.algorithmB.name},${d.algorithmB.comparisons},${d.algorithmB.swaps},${d.algorithmB.steps}`,
+      ].join('\n');
+      triggerDownload(csv, 'algovisual_report.csv', 'text/csv');
     });
 
     // Theme toggle

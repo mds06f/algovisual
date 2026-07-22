@@ -74,8 +74,28 @@
             <button id="btn-audio-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Sound (Sonification)">
               <span id="audio-toggle-icon">🔇</span>
             </button>
+            <button id="btn-audio-settings" class="tech-btn p-3 rounded text-xs" title="Sound Settings (Waveform & Pitch)">⚙</button>
             <span id="step-counter-text" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-3 rounded select-none min-w-[95px] text-center">Step 0 / 0</span>
           </div>
+
+          <!-- Audio Settings Drawer -->
+          <div id="audio-settings-drawer" class="hidden w-full flex items-center gap-4 flex-wrap bg-[#090d16] border border-slate-900 rounded px-4 py-2">
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Waveform</span>
+              <select id="select-waveform" class="tech-input text-xs bg-slate-950 border border-slate-900 rounded px-2 py-1.5 font-technical focus:outline-none">
+                <option value="sine">Sine</option>
+                <option value="triangle">Triangle</option>
+                <option value="square">Square</option>
+                <option value="sawtooth">Sawtooth</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider">Pitch</span>
+              <input type="range" id="slider-pitch" min="0.5" max="2.0" step="0.1" value="1.0" class="tech-slider w-20 cursor-pointer">
+              <span id="text-pitch" class="text-[10px] text-[#00e1d9] font-bold font-technical">1.0x</span>
+            </div>
+          </div>
+
 
           <!-- Speed Slider + Presets -->
           <div class="flex flex-col gap-2 w-full sm:w-auto">
@@ -99,6 +119,7 @@
               <option value="">-- Presets --</option>
               <option value="23,45,12,56,34,18,9,41">Default Array</option>
             </select>
+            <button id="btn-delete-preset" class="tech-btn p-2 rounded text-xs" title="Delete selected custom preset" style="line-height:1">🗑</button>
 
             <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
               <input type="text" id="input-custom" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[120px] font-technical text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-0" placeholder="e.g. 5,12,8,25">
@@ -116,6 +137,21 @@
             </button>
             <button id="btn-reset" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Reset custom array and workspace state to default">
               Reset
+            </button>
+          </div>
+
+          <!-- Random Array Generator -->
+          <div id="container-randomize" class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-1">Len</span>
+              <input type="number" id="random-length" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[38px] font-technical text-slate-200 px-1 py-1.5 focus:outline-none focus:ring-0 text-center" placeholder="8" min="3" max="15" value="8">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical border-l border-slate-800 pl-1">Min</span>
+              <input type="number" id="random-min" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[38px] font-technical text-slate-200 px-1 py-1.5 focus:outline-none focus:ring-0 text-center" placeholder="1" min="1" max="99" value="1">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical border-l border-slate-800 pl-1">Max</span>
+              <input type="number" id="random-max" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[38px] font-technical text-slate-200 px-1 py-1.5 focus:outline-none focus:ring-0 text-center" placeholder="99" min="2" max="99" value="99">
+            </div>
+            <button id="btn-randomize" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Generate a random array with the given parameters">
+              Randomize
             </button>
           </div>
 
@@ -226,8 +262,12 @@
 
           <!-- Sandbox Editor View -->
           <div id="sandbox-container" class="hidden flex-1 flex flex-col bg-slate-950/15 overflow-hidden">
-            <textarea id="sandbox-textarea" class="flex-1 w-full bg-slate-950/40 p-4 text-xs font-mono text-cyan-400 border-none outline-none resize-none focus:ring-0" spellcheck="false"></textarea>
-            
+            <!-- Syntax-highlight backdrop + transparent textarea overlay -->
+            <div id="sandbox-editor-wrap" class="flex-1 relative overflow-hidden">
+              <div id="sandbox-highlight" class="sandbox-highlight" aria-hidden="true"></div>
+              <textarea id="sandbox-textarea" class="sandbox-textarea" spellcheck="false"></textarea>
+            </div>
+
             <!-- Sandbox Benchmark Panel (initially hidden) -->
             <div id="sandbox-benchmark-panel" class="hidden border-t border-slate-900 bg-slate-950/80 p-4 flex flex-col gap-2">
               <div class="flex justify-between items-center">

@@ -27,6 +27,7 @@ let narrativeText;
 let selectPreset;
 let btnSavePreset;
 let btnReset;
+let btnDeletePreset;
 let btnToggleSandbox;
 let btnRunSandbox;
 let sandboxContainer;
@@ -36,6 +37,13 @@ let btnAudioToggle;
 let audioToggleIcon;
 let audioCtx = null;
 let isAudioMuted = true;
+let soundWaveform = 'sine';
+let soundPitchMultiplier = 1.0;
+let btnAudioSettings;
+let audioSettingsDrawer;
+let selectWaveform;
+let sliderPitch;
+let textPitch;
 let btnExportLog;
 let stepCounterText;
 let btnBenchmarkSandbox;
@@ -44,6 +52,7 @@ let btnCloseBenchmark;
 let benchmarkChartContainer;
 let selectHeuristic;
 let containerHeuristicSelect;
+let btnRandomize;
 
 export async function initPlayer(algoName) {
   try {
@@ -66,6 +75,7 @@ export async function initPlayer(algoName) {
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
     btnReset = document.getElementById('btn-reset');
+    btnDeletePreset = document.getElementById('btn-delete-preset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
     btnRunSandbox = document.getElementById('btn-run-sandbox');
     sandboxContainer = document.getElementById('sandbox-container');
@@ -73,6 +83,11 @@ export async function initPlayer(algoName) {
     labelCodeType = document.getElementById('label-code-type');
     btnAudioToggle = document.getElementById('btn-audio-toggle');
     audioToggleIcon = document.getElementById('audio-toggle-icon');
+    btnAudioSettings = document.getElementById('btn-audio-settings');
+    audioSettingsDrawer = document.getElementById('audio-settings-drawer');
+    selectWaveform = document.getElementById('select-waveform');
+    sliderPitch = document.getElementById('slider-pitch');
+    textPitch = document.getElementById('text-pitch');
     btnExportLog = document.getElementById('btn-export-log');
     stepCounterText = document.getElementById('step-counter-text');
     btnBenchmarkSandbox = document.getElementById('btn-benchmark-sandbox');
@@ -85,6 +100,7 @@ export async function initPlayer(algoName) {
     containerHeuristicSelect = document.getElementById(
       'container-heuristic-select',
     );
+    btnRandomize = document.getElementById('btn-randomize');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -795,6 +811,54 @@ function bindEvents() {
     });
   }
 
+  // Click event on btn-randomize
+  if (btnRandomize) {
+    btnRandomize.addEventListener('click', () => {
+      const lenInput = document.getElementById('random-length');
+      const minInput = document.getElementById('random-min');
+      const maxInput = document.getElementById('random-max');
+
+      const len = Math.min(15, Math.max(3, parseInt(lenInput?.value, 10) || 8));
+      const minVal = Math.min(98, Math.max(1, parseInt(minInput?.value, 10) || 1));
+      const maxVal = Math.min(99, Math.max(minVal + 1, parseInt(maxInput?.value, 10) || 99));
+
+      const randomArr = Array.from({ length: len }, () =>
+        Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal
+      );
+
+      defaultArray = randomArr;
+      if (customInput) customInput.value = randomArr.join(',');
+      if (selectPreset) selectPreset.value = '';
+
+      let targetVal = undefined;
+      if (currentAlgorithm.category === 'Searching') {
+        // Pick a random element from the generated array as the target
+        targetVal = randomArr[Math.floor(Math.random() * randomArr.length)];
+        const targetInput = document.getElementById('input-target');
+        if (targetInput) targetInput.value = targetVal;
+      }
+      resetPlayroom(defaultArray, targetVal);
+    });
+  }
+
+  // Click event on btn-delete-preset
+  if (btnDeletePreset) {
+    btnDeletePreset.addEventListener('click', () => {
+      if (!selectPreset) return;
+      const selectedVal = selectPreset.value;
+      // Do not allow deleting the built-in Default Array option
+      if (!selectedVal || selectedVal === '23,45,12,56,34,18,9,41') {
+        alert('Select a custom saved preset to delete.');
+        return;
+      }
+      const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
+      const updated = storedPresets.filter((p) => p.array !== selectedVal);
+      localStorage.setItem('algovisual_presets', JSON.stringify(updated));
+      loadPresetsDropdown();
+      if (customInput) customInput.value = '';
+    });
+  }
+
   // Toggle Sandbox Mode
   if (btnToggleSandbox) {
     btnToggleSandbox.addEventListener('click', () => {
@@ -810,6 +874,7 @@ function bindEvents() {
         if (!sandboxTextarea.value.trim()) {
           sandboxTextarea.value = currentAlgorithm.generator.toString();
         }
+        syncHighlight();
       } else {
         // Switch to pseudocode mode
         sandboxContainer.classList.add('hidden');
@@ -818,6 +883,38 @@ function bindEvents() {
         if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
       }
     });
+  }
+
+  // ── Syntax Highlighter ──────────────────────────────────────────────────
+  function syncHighlight() {
+    const highlightEl = document.getElementById('sandbox-highlight');
+    if (!sandboxTextarea || !highlightEl) return;
+    const raw = sandboxTextarea.value;
+    const escaped = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const highlighted = escaped
+      // Single-line comments
+      .replace(/((\/\/)[^\n]*)/g, '<span class="sh-comment">$1</span>')
+      // Strings (double, single, backtick)
+      .replace(/("[^"\\]*"|'[^'\\]*'|`[^`\\]*`)/g, '<span class="sh-string">$1</span>')
+      // yield keyword (before generic keywords)
+      .replace(/\b(yield)\b/g, '<span class="sh-yield">$1</span>')
+      // JS keywords
+      .replace(/\b(function|const|let|var|return|if|else|for|while|do|break|continue|new|true|false|null|undefined|typeof|instanceof|import|export|default|class|extends|this|throw|try|catch|finally|of|in|async|await)\b/g, '<span class="sh-keyword">$1</span>')
+      // Numbers
+      .replace(/\b(\d+\.?\d*)\b/g, '<span class="sh-number">$1</span>');
+    highlightEl.innerHTML = highlighted + '\n'; // trailing \n keeps scroll in sync
+    // Mirror scroll
+    highlightEl.scrollTop = sandboxTextarea.scrollTop;
+    highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+  }
+
+  if (sandboxTextarea) {
+    sandboxTextarea.addEventListener('input', syncHighlight);
+    sandboxTextarea.addEventListener('scroll', syncHighlight);
+    sandboxTextarea.addEventListener('keydown', syncHighlight);
   }
 
   function instrumentSandboxCode(code) {
@@ -1020,6 +1117,30 @@ function bindEvents() {
     });
   }
 
+  // Toggle Audio Settings Drawer
+  if (btnAudioSettings && audioSettingsDrawer) {
+    btnAudioSettings.addEventListener('click', () => {
+      audioSettingsDrawer.classList.toggle('hidden');
+    });
+  }
+
+  // Sound Waveform selection
+  if (selectWaveform) {
+    selectWaveform.addEventListener('change', (e) => {
+      soundWaveform = e.target.value;
+    });
+  }
+
+  // Sound Pitch Multiplier selection
+  if (sliderPitch) {
+    sliderPitch.addEventListener('input', (e) => {
+      soundPitchMultiplier = parseFloat(e.target.value);
+      if (textPitch) {
+        textPitch.textContent = `${soundPitchMultiplier.toFixed(1)}x`;
+      }
+    });
+  }
+
   // Download Debug Log
   if (btnExportLog) {
     btnExportLog.addEventListener('click', () => {
@@ -1176,8 +1297,8 @@ function playToneForValue(value) {
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.type = soundWaveform;
+    osc.frequency.setValueAtTime(freq * soundPitchMultiplier, audioCtx.currentTime);
 
     // Dynamic volume ramp to prevent audio clicks/pops
     gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
