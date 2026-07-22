@@ -27,6 +27,7 @@ let narrativeText;
 let selectPreset;
 let btnSavePreset;
 let btnReset;
+let btnDeletePreset;
 let btnToggleSandbox;
 let btnRunSandbox;
 let sandboxContainer;
@@ -67,6 +68,7 @@ export async function initPlayer(algoName) {
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
     btnReset = document.getElementById('btn-reset');
+    btnDeletePreset = document.getElementById('btn-delete-preset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
     btnRunSandbox = document.getElementById('btn-run-sandbox');
     sandboxContainer = document.getElementById('sandbox-container');
@@ -824,6 +826,24 @@ function bindEvents() {
         if (targetInput) targetInput.value = targetVal;
       }
       resetPlayroom(defaultArray, targetVal);
+    });
+  }
+
+  // Click event on btn-delete-preset
+  if (btnDeletePreset) {
+    btnDeletePreset.addEventListener('click', () => {
+      if (!selectPreset) return;
+      const selectedVal = selectPreset.value;
+      // Do not allow deleting the built-in Default Array option
+      if (!selectedVal || selectedVal === '23,45,12,56,34,18,9,41') {
+        alert('Select a custom saved preset to delete.');
+        return;
+      }
+      const storedPresets = JSON.parse(localStorage.getItem('algovisual_presets') || '[]');
+      const updated = storedPresets.filter((p) => p.array !== selectedVal);
+      localStorage.setItem('algovisual_presets', JSON.stringify(updated));
+      loadPresetsDropdown();
+      if (customInput) customInput.value = '';
     });
   }
 
