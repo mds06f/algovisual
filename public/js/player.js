@@ -26,6 +26,7 @@ let btnApplyInput;
 let narrativeText;
 let selectPreset;
 let btnSavePreset;
+let btnReset;
 let btnToggleSandbox;
 let btnRunSandbox;
 let sandboxContainer;
@@ -64,6 +65,7 @@ export async function initPlayer(algoName) {
     narrativeText = document.getElementById('narrative-text');
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
+    btnReset = document.getElementById('btn-reset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
     btnRunSandbox = document.getElementById('btn-run-sandbox');
     sandboxContainer = document.getElementById('sandbox-container');
@@ -683,6 +685,37 @@ function bindEvents() {
       if (selectPreset) {
         selectPreset.value = val;
       }
+    });
+  }
+
+  // Click event on btn-reset
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      if (customInput) customInput.value = '';
+      if (selectPreset) selectPreset.value = '';
+      
+      if (currentAlgorithm.category === 'Pathfinding') {
+        const TOTAL_NODES = 96;
+        defaultArray = Array(TOTAL_NODES).fill(0); // STATE_EMPTY
+        defaultArray[25] = 1; // STATE_START
+        defaultArray[70] = 2; // STATE_END
+        const defaultWalls = [17, 29, 41, 53, 65, 43, 44, 45, 46];
+        defaultWalls.forEach(idx => {
+          defaultArray[idx] = 3; // STATE_WALL
+        });
+      } else {
+        defaultArray = [23, 45, 12, 56, 34, 18, 9, 41];
+      }
+
+      let targetVal = undefined;
+      if (currentAlgorithm.category === 'Searching') {
+        const targetInput = document.getElementById('input-target');
+        if (targetInput) {
+          targetInput.value = '34';
+          targetVal = 34;
+        }
+      }
+      resetPlayroom(defaultArray, targetVal);
     });
   }
 
