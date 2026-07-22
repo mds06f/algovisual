@@ -46,23 +46,31 @@ algovisual/
 ## Getting Started
 
 ### Prerequisites
+
 Make sure you have [Node.js](https://nodejs.org/) installed (Node 18.x or 20.x recommended).
 
 ### 1. Install Dependencies
+
 Clone the repository and run:
+
 ```bash
 npm install
 ```
 
 ### 2. Run the Development Server
+
 Start the local server with nodemon reloading:
+
 ```bash
 npm run dev
 ```
+
 Open `http://localhost:3000` in your web browser.
 
 ### 3. Run the Test Suite
+
 Ensure the routes build properly by executing Jest:
+
 ```bash
 npm test
 ```

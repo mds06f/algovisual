@@ -3,7 +3,6 @@ const request = require('supertest');
 const app = require('../server');
 
 describe('AlgoVisual Routes', () => {
-  
   test('GET / should render the dashboard page successfully', async () => {
     const res = await request(app).get('/');
     expect(res.statusCode).toBe(200);
@@ -83,7 +82,9 @@ describe('AlgoVisual Routes', () => {
   });
 
   test('GET /compare?algoA=bubbleSort&algoB=quickSort should load comparison board with params', async () => {
-    const res = await request(app).get('/compare?algoA=bubbleSort&algoB=quickSort');
+    const res = await request(app).get(
+      '/compare?algoA=bubbleSort&algoB=quickSort',
+    );
     expect(res.statusCode).toBe(200);
     expect(res.text).toContain('bubbleSort');
     expect(res.text).toContain('quickSort');

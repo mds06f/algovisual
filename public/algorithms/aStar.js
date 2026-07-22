@@ -1,27 +1,28 @@
 // public/algorithms/aStar.js
 
 export const algorithm = {
-  name: "A* Search Pathfinder",
-  category: "Pathfinding",
-  description: "A* Search Pathfinder is a heuristic-guided graph search algorithm. It calculates the optimal route by minimizing the sum of the actual path cost (G) and the estimated heuristic cost (H) to the goal.",
+  name: 'A* Search Pathfinder',
+  category: 'Pathfinding',
+  description:
+    'A* Search Pathfinder is a heuristic-guided graph search algorithm. It calculates the optimal route by minimizing the sum of the actual path cost (G) and the estimated heuristic cost (H) to the goal.',
   pseudocode: [
-    "procedure AStar(Graph, start, end):",
-    "  openSet = {start}",
-    "  gScore[start] = 0",
-    "  fScore[start] = heuristic(start, end)",
-    "  while openSet is not empty do:",
-    "      u = node in openSet with min fScore[u]",
-    "      if u == end then reconstruct path",
-    "      openSet.remove(u), closedSet.add(u)",
-    "      for each neighbor v of u do:",
-    "          tentative_gScore = gScore[u] + 1",
-    "          if tentative_gScore < gScore[v] then:",
-    "              parent[v] = u",
-    "              gScore[v] = tentative_gScore",
-    "              fScore[v] = gScore[v] + heuristic(v, end)",
-    "              if v not in openSet then openSet.add(v)"
+    'procedure AStar(Graph, start, end):',
+    '  openSet = {start}',
+    '  gScore[start] = 0',
+    '  fScore[start] = heuristic(start, end)',
+    '  while openSet is not empty do:',
+    '      u = node in openSet with min fScore[u]',
+    '      if u == end then reconstruct path',
+    '      openSet.remove(u), closedSet.add(u)',
+    '      for each neighbor v of u do:',
+    '          tentative_gScore = gScore[u] + 1',
+    '          if tentative_gScore < gScore[v] then:',
+    '              parent[v] = u',
+    '              gScore[v] = tentative_gScore',
+    '              fScore[v] = gScore[v] + heuristic(v, end)',
+    '              if v not in openSet then openSet.add(v)',
   ],
-  generator: function(arr, target) {
+  generator: function (arr, target) {
     const ROWS = 8;
     const COLS = 12;
     const TOTAL_NODES = ROWS * COLS;
@@ -38,30 +39,37 @@ export const algorithm = {
     const END_INDEX = 70;
 
     // Parse heuristic parameter (default: manhattan)
-    const heuristicType = (typeof target === 'string') ? target.toLowerCase() : 'manhattan';
+    const heuristicType =
+      typeof target === 'string' ? target.toLowerCase() : 'manhattan';
 
     // Parse wall configuration
     const wallIndices = new Set();
     if (arr && arr.length === TOTAL_NODES) {
       arr.forEach((cellType, idx) => {
-        if (cellType === STATE_WALL && idx !== START_INDEX && idx !== END_INDEX) {
+        if (
+          cellType === STATE_WALL &&
+          idx !== START_INDEX &&
+          idx !== END_INDEX
+        ) {
           wallIndices.add(idx);
         }
       });
     } else {
-      [17, 29, 41, 53, 65, 43, 44, 45, 46].forEach(idx => wallIndices.add(idx));
+      [17, 29, 41, 53, 65, 43, 44, 45, 46].forEach((idx) =>
+        wallIndices.add(idx),
+      );
     }
 
     const grid = Array(TOTAL_NODES).fill(STATE_EMPTY);
     grid[START_INDEX] = STATE_START;
     grid[END_INDEX] = STATE_END;
-    wallIndices.forEach(idx => {
+    wallIndices.forEach((idx) => {
       grid[idx] = STATE_WALL;
     });
 
     const getRowCol = (idx) => ({
       r: Math.floor(idx / COLS),
-      c: idx % COLS
+      c: idx % COLS,
     });
 
     const endPos = getRowCol(END_INDEX);
@@ -89,18 +97,18 @@ export const algorithm = {
     const stats = () => ({
       comparisons: visitCount,
       swaps: pathLength,
-      complexity: { time: "O(E log V)", space: "O(V)" }
+      complexity: { time: 'O(E log V)', space: 'O(V)' },
     });
 
     const fghScores = {}; // index -> { f, g, h }
     const getGridState = (visitedNodes, pathNodes) => {
       const state = [...grid];
-      visitedNodes.forEach(idx => {
+      visitedNodes.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
           state[idx] = STATE_VISITED;
         }
       });
-      pathNodes.forEach(idx => {
+      pathNodes.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
           state[idx] = STATE_PATH;
         }
@@ -118,7 +126,7 @@ export const algorithm = {
     fghScores[START_INDEX] = {
       f: fScore[START_INDEX],
       g: gScore[START_INDEX],
-      h: fScore[START_INDEX]
+      h: fScore[START_INDEX],
     };
 
     const openSet = new Set([START_INDEX]);
@@ -132,7 +140,7 @@ export const algorithm = {
       executingLine: 0,
       stats: stats(),
       description: `Starting A* Pathfinder using ${heuristicType.toUpperCase()} heuristic.`,
-      scores: JSON.parse(JSON.stringify(fghScores))
+      scores: JSON.parse(JSON.stringify(fghScores)),
     });
 
     let endReached = false;
@@ -156,7 +164,7 @@ export const algorithm = {
         executingLine: 5,
         stats: stats(),
         description: `Selected open node ${u} with min fScore = ${minF.toFixed(2)} (g = ${gScore[u]}, h = ${getHeuristic(u).toFixed(2)}).`,
-        scores: JSON.parse(JSON.stringify(fghScores))
+        scores: JSON.parse(JSON.stringify(fghScores)),
       });
 
       if (u === END_INDEX) {
@@ -168,8 +176,8 @@ export const algorithm = {
           pointers: { start: START_INDEX, end: END_INDEX },
           executingLine: 6,
           stats: stats(),
-          description: "Reached target end node! Reconstructing optimal path.",
-          scores: JSON.parse(JSON.stringify(fghScores))
+          description: 'Reached target end node! Reconstructing optimal path.',
+          scores: JSON.parse(JSON.stringify(fghScores)),
         });
         break;
       }
@@ -189,12 +197,12 @@ export const algorithm = {
       // Snapshot 8: Evaluate neighbors
       snapshots.push({
         array: getGridState(closedSet, []),
-        highlights: neighbors.filter(v => !wallIndices.has(v)),
+        highlights: neighbors.filter((v) => !wallIndices.has(v)),
         pointers: { current: u, start: START_INDEX, end: END_INDEX },
         executingLine: 8,
         stats: stats(),
         description: `Evaluate adjacent neighbors for current node ${u}.`,
-        scores: JSON.parse(JSON.stringify(fghScores))
+        scores: JSON.parse(JSON.stringify(fghScores)),
       });
 
       for (const v of neighbors) {
@@ -211,7 +219,7 @@ export const algorithm = {
           fghScores[v] = {
             f: fScore[v],
             g: gScore[v],
-            h: h
+            h: h,
           };
 
           openSet.add(v);
@@ -220,11 +228,16 @@ export const algorithm = {
           snapshots.push({
             array: getGridState(closedSet, []),
             highlights: [v],
-            pointers: { current: u, neighbor: v, start: START_INDEX, end: END_INDEX },
+            pointers: {
+              current: u,
+              neighbor: v,
+              start: START_INDEX,
+              end: END_INDEX,
+            },
             executingLine: 12,
             stats: stats(),
             description: `Update neighbor ${v}: g = ${gScore[v]}, h = ${h.toFixed(2)}, f = ${fScore[v].toFixed(2)}.`,
-            scores: JSON.parse(JSON.stringify(fghScores))
+            scores: JSON.parse(JSON.stringify(fghScores)),
           });
         }
       }
@@ -247,11 +260,15 @@ export const algorithm = {
         snapshots.push({
           array: getGridState(closedSet, pathBuild),
           highlights: [shortestPath[step]],
-          pointers: { pathNode: shortestPath[step], start: START_INDEX, end: END_INDEX },
+          pointers: {
+            pathNode: shortestPath[step],
+            start: START_INDEX,
+            end: END_INDEX,
+          },
           executingLine: 6,
           stats: stats(),
           description: `Trace back parent: adding node ${shortestPath[step]} to path.`,
-          scores: JSON.parse(JSON.stringify(fghScores))
+          scores: JSON.parse(JSON.stringify(fghScores)),
         });
       }
     }
@@ -266,9 +283,9 @@ export const algorithm = {
       description: endReached
         ? `A* completed! Path length is ${pathLength} nodes (visited ${visitCount} nodes).`
         : `A* completed. End node is not reachable.`,
-      scores: JSON.parse(JSON.stringify(fghScores))
+      scores: JSON.parse(JSON.stringify(fghScores)),
     });
 
     return snapshots;
-  }
+  },
 };
