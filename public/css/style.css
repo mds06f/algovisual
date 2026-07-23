@@ -907,6 +907,12 @@ select.tech-input option {
   border-color: #4b5563;
 }
 
+.grid-cell.weight {
+  background-color: #d97706;
+  border-color: #f59e0b;
+  box-shadow: inset 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
 .grid-cell.visited {
   background-color: rgba(139, 92, 246, 0.4);
   border-color: rgba(139, 92, 246, 0.6);

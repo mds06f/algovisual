@@ -17,6 +17,7 @@ let barsContainer;
 let pseudocodeContainer;
 let consoleLog;
 let playPauseBtn;
+let btnUndo;
 let prevBtn;
 let nextBtn;
 let speedSlider;
@@ -53,6 +54,10 @@ let benchmarkChartContainer;
 let selectHeuristic;
 let containerHeuristicSelect;
 let btnRandomize;
+let containerMazeSelect;
+let selectMazeType;
+let btnGenerateMaze;
+let activeBreakpoints = new Set();
 
 export async function initPlayer(algoName) {
   try {
@@ -65,6 +70,7 @@ export async function initPlayer(algoName) {
     pseudocodeContainer = document.getElementById('pseudocode-container');
     consoleLog = document.getElementById('console-log');
     playPauseBtn = document.getElementById('btn-play');
+    btnUndo = document.getElementById('btn-undo');
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
     speedSlider = document.getElementById('slider-speed');
@@ -101,6 +107,9 @@ export async function initPlayer(algoName) {
       'container-heuristic-select',
     );
     btnRandomize = document.getElementById('btn-randomize');
+    containerMazeSelect = document.getElementById('container-maze-select');
+    selectMazeType = document.getElementById('select-maze-type');
+    btnGenerateMaze = document.getElementById('btn-generate-maze');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -143,6 +152,14 @@ export async function initPlayer(algoName) {
         }
       } else {
         containerHeuristicSelect.classList.add('hidden');
+      }
+    }
+
+    if (containerMazeSelect) {
+      if (currentAlgorithm.category === 'Pathfinding') {
+        containerMazeSelect.classList.remove('hidden');
+      } else {
+        containerMazeSelect.classList.add('hidden');
       }
     }
 
@@ -274,6 +291,7 @@ function renderBars(
       else if (cellType === 3) cellClass += ' wall';
       else if (cellType === 4) cellClass += ' visited';
       else if (cellType === 5) cellClass += ' path';
+      else if (cellType === 6) cellClass += ' weight';
 
       cell.className = cellClass;
       cell.dataset.index = index;
@@ -285,6 +303,9 @@ function renderBars(
       } else if (cellType === 2) {
         cell.innerHTML =
           '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
+      } else if (cellType === 6) {
+        cell.innerHTML =
+          '<span class="text-[9px] font-bold text-amber-200 flex items-center justify-center h-full select-none">5</span>';
       } else if (scores && scores[index]) {
         const scoreObj = scores[index];
         const f = scoreObj.f.toFixed(0);
@@ -596,6 +617,11 @@ function startAnimation() {
     if (currentIndex < snapshots.length - 1) {
       currentIndex++;
       renderSnapshot(currentIndex);
+      const curLine = snapshots[currentIndex]?.executingLine;
+      if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+        pauseAnimation();
+        appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+      }
     } else {
       pauseAnimation();
       updateStatusHUD('FINISHED');
@@ -634,6 +660,16 @@ function stepPrev() {
   }
 }
 
+function undoAction() {
+  pauseAnimation();
+  if (currentIndex > 0) {
+    currentIndex = Math.max(0, currentIndex - 1);
+    renderSnapshot(currentIndex);
+    appendConsoleLog(`[UNDO] Deep backtracked execution state to step ${currentIndex + 1}`);
+    updateStatusHUD('PAUSED');
+  }
+}
+
 function bindEvents() {
   playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
@@ -643,6 +679,7 @@ function bindEvents() {
     }
   });
 
+  if (btnUndo) btnUndo.addEventListener('click', undoAction);
   prevBtn.addEventListener('click', stepPrev);
   nextBtn.addEventListener('click', stepNext);
 
@@ -859,6 +896,74 @@ function bindEvents() {
     });
   }
 
+  // Generate Maze for Pathfinding Grid
+  if (btnGenerateMaze) {
+    btnGenerateMaze.addEventListener('click', () => {
+      const type = selectMazeType ? selectMazeType.value : 'recursive-division';
+      const TOTAL_NODES = 96;
+      const arr = Array(TOTAL_NODES).fill(0); // 0 = empty
+      arr[25] = 1; // start
+      arr[70] = 2; // end
+
+      if (type === 'random') {
+        for (let i = 0; i < TOTAL_NODES; i++) {
+          if (i !== 25 && i !== 70 && Math.random() < 0.35) {
+            arr[i] = 3; // wall
+          }
+        }
+      } else if (type === 'recursive-division') {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 12; c++) {
+            const idx = r * 12 + c;
+            if (idx === 25 || idx === 70) continue;
+            if ((c === 3 && r !== 2 && r !== 6) || (c === 7 && r !== 1 && r !== 5) || (r === 3 && c !== 4 && c !== 9) || (r === 5 && c !== 1 && c !== 8)) {
+              arr[idx] = 3;
+            }
+          }
+        }
+      } else { // prims
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 12; c++) {
+            const idx = r * 12 + c;
+            if (idx === 25 || idx === 70) continue;
+            if ((r % 2 === 1 && c % 2 === 1) || (r % 2 === 0 && Math.random() < 0.4)) {
+              arr[idx] = 3;
+            }
+          }
+        }
+      }
+
+      defaultArray = arr;
+      resetPlayroom(defaultArray);
+    });
+  }
+
+  // Toggle Breakpoints in Sandbox
+  const btnToggleBp = document.getElementById('btn-toggle-breakpoint');
+  const inputBpLine = document.getElementById('input-breakpoint-line');
+  const textActiveBp = document.getElementById('text-active-breakpoints');
+
+  if (btnToggleBp && inputBpLine) {
+    btnToggleBp.addEventListener('click', () => {
+      const lineNum = parseInt(inputBpLine.value.trim(), 10);
+      if (isNaN(lineNum) || lineNum < 1) {
+        alert('Please enter a valid line number for the breakpoint.');
+        return;
+      }
+      if (activeBreakpoints.has(lineNum)) {
+        activeBreakpoints.delete(lineNum);
+      } else {
+        activeBreakpoints.add(lineNum);
+      }
+      inputBpLine.value = '';
+      if (textActiveBp) {
+        textActiveBp.textContent = activeBreakpoints.size > 0
+          ? Array.from(activeBreakpoints).sort((a, b) => a - b).join(', ')
+          : 'None';
+      }
+    });
+  }
+
   // Toggle Sandbox Mode
   if (btnToggleSandbox) {
     btnToggleSandbox.addEventListener('click', () => {
@@ -938,7 +1043,7 @@ function bindEvents() {
     );
   }
 
-  // Run custom sandbox algorithm code
+  // Run custom sandbox algorithm code using background Web Worker
   if (btnRunSandbox) {
     btnRunSandbox.addEventListener('click', () => {
       const userCode = sandboxTextarea.value.trim();
@@ -950,18 +1055,6 @@ function bindEvents() {
       try {
         // Instrument user code to insert loop guards
         const instrumented = instrumentSandboxCode(userCode);
-
-        // Evaluate the function body typed in the textarea
-        const compiledFn = new Function(`return (${instrumented})`)();
-
-        if (typeof compiledFn !== 'function') {
-          throw new Error(
-            'Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }',
-          );
-        }
-
-        // Set as the current generator
-        currentAlgorithm.generator = compiledFn;
 
         // Retrieve target if searching
         let targetVal = undefined;
@@ -975,12 +1068,54 @@ function bindEvents() {
           }
         }
 
-        // Re-initialize playroom
-        resetPlayroom(defaultArray, targetVal);
-        alert('Custom sandbox algorithm loaded successfully!');
+        // Web Worker background thread script
+        const workerScript = `
+          self.onmessage = function(e) {
+            const { code, inputArr, targetVal } = e.data;
+            try {
+              const fn = new Function('return (' + code + ')')();
+              if (typeof fn !== 'function') {
+                throw new Error('Parsed code is not a function.');
+              }
+              const snapshots = fn(inputArr, targetVal);
+              self.postMessage({ success: true, snapshots: snapshots });
+            } catch(err) {
+              self.postMessage({ success: false, error: err.message });
+            }
+          };
+        `;
+
+        const blob = new Blob([workerScript], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(blob);
+        const worker = new Worker(workerUrl);
+
+        worker.onmessage = (e) => {
+          URL.revokeObjectURL(workerUrl);
+          if (e.data.success) {
+            currentAlgorithm.generator = () => e.data.snapshots;
+            resetPlayroom(defaultArray, targetVal);
+            appendConsoleLog('[WEB WORKER] Executed sandbox code asynchronously on background worker thread.');
+            alert('Custom sandbox algorithm executed safely via Web Worker!');
+          } else {
+            console.error('Web Worker Sandbox error:', e.data.error);
+            alert('Web Worker compilation/runtime error:\n' + e.data.error);
+          }
+        };
+
+        worker.onerror = (err) => {
+          URL.revokeObjectURL(workerUrl);
+          console.error('Web Worker error:', err);
+          alert('Web Worker error: ' + err.message);
+        };
+
+        worker.postMessage({
+          code: instrumented,
+          inputArr: [...defaultArray],
+          targetVal: targetVal,
+        });
       } catch (err) {
-        console.error('Sandbox evaluation error:', err);
-        alert('Compilation or runtime error:\n' + err.message);
+        console.error('Sandbox initialization error:', err);
+        alert('Compilation error:\n' + err.message);
       }
     });
   }
@@ -1209,6 +1344,15 @@ function bindEvents() {
   }
 
   // Interactive pathfinding grid drawing events
+  let isPaintingWeight = false;
+  const btnTogglePaint = document.getElementById('btn-toggle-paint');
+  if (btnTogglePaint) {
+    btnTogglePaint.addEventListener('click', () => {
+      isPaintingWeight = !isPaintingWeight;
+      btnTogglePaint.textContent = isPaintingWeight ? 'Tool: Weight (5)' : 'Tool: Wall';
+    });
+  }
+
   if (barsContainer) {
     barsContainer.addEventListener('mousedown', (e) => {
       if (currentAlgorithm.category !== 'Pathfinding') return;
@@ -1221,13 +1365,13 @@ function bindEvents() {
       // Do not allow drawing over start (index 25) or end (index 70)
       if (index === 25 || index === 70) return;
 
-      // Determine drawing mode (draw wall vs erase wall)
-      if (defaultArray[index] === 3) {
+      const targetType = isPaintingWeight ? 6 : 3;
+      if (defaultArray[index] === targetType) {
         isDrawingWall = false;
         defaultArray[index] = 0;
       } else {
         isDrawingWall = true;
-        defaultArray[index] = 3;
+        defaultArray[index] = targetType;
       }
 
       isGridMouseDown = true;
@@ -1245,7 +1389,8 @@ function bindEvents() {
 
       if (index === 25 || index === 70) return;
 
-      const newType = isDrawingWall ? 3 : 0;
+      const targetType = isPaintingWeight ? 6 : 3;
+      const newType = isDrawingWall ? targetType : 0;
       if (defaultArray[index] !== newType) {
         defaultArray[index] = newType;
         resetPlayroom(defaultArray);

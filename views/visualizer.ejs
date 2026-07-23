@@ -62,6 +62,9 @@
         <div class="cyber-panel p-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <!-- Playback Buttons -->
           <div class="flex items-center gap-3">
+            <button id="btn-undo" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Undo / Deep Backtrack Action">
+              <span>↩️</span> Undo
+            </button>
             <button id="btn-prev" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Backward">
               <span>⏮</span> Step Back
             </button>
@@ -155,14 +158,20 @@
             </button>
           </div>
 
-          <!-- Heuristic Options Selector -->
-          <div id="container-heuristic-select" class="hidden flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200 w-full sm:w-auto">
-            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Heuristic</span>
-            <select id="select-heuristic" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
-              <option value="manhattan">Manhattan</option>
-              <option value="chebyshev">Chebyshev</option>
-              <option value="euclidean">Euclidean</option>
+          <!-- Dynamic Maze Generator Selector -->
+          <div id="container-maze-select" class="hidden flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200 w-full sm:w-auto">
+            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Maze</span>
+            <select id="select-maze-type" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
+              <option value="recursive-division">Recursive Division</option>
+              <option value="prims">Prim's Maze</option>
+              <option value="random">Random Obstacles</option>
             </select>
+            <button id="btn-generate-maze" class="tech-btn text-xs px-3 py-1.5 rounded font-bold uppercase tracking-wider" title="Generate maze obstacles on grid">
+              Generate
+            </button>
+            <button id="btn-toggle-paint" class="tech-btn text-xs px-3 py-1.5 rounded font-bold uppercase tracking-wider border border-amber-500/40 text-amber-300" title="Toggle paint tool between Wall and Weight (Cost 5)">
+              Tool: Wall
+            </button>
           </div>
         </div>
 
@@ -262,6 +271,18 @@
 
           <!-- Sandbox Editor View -->
           <div id="sandbox-container" class="hidden flex-1 flex flex-col bg-slate-950/15 overflow-hidden">
+            <!-- Breakpoints Toolbar -->
+            <div id="sandbox-breakpoints-bar" class="px-3 py-1.5 border-b border-slate-900 bg-slate-950/60 flex items-center justify-between text-[10px] text-slate-400 font-technical">
+              <div class="flex items-center gap-2">
+                <span class="text-cyan-400 font-bold">🔴 Breakpoints:</span>
+                <input type="number" id="input-breakpoint-line" class="bg-slate-950 border border-slate-900 text-cyan-400 px-2 py-0.5 rounded w-14 text-center font-technical focus:outline-none" placeholder="Line #" min="1">
+                <button id="btn-toggle-breakpoint" class="tech-btn text-[9px] px-2 py-0.5 rounded font-bold uppercase" title="Add/Remove Breakpoint at line number">
+                  Set Breakpoint
+                </button>
+              </div>
+              <span id="text-active-breakpoints" class="text-[9px] text-slate-500 font-technical">None</span>
+            </div>
+
             <!-- Syntax-highlight backdrop + transparent textarea overlay -->
             <div id="sandbox-editor-wrap" class="flex-1 relative overflow-hidden">
               <div id="sandbox-highlight" class="sandbox-highlight" aria-hidden="true"></div>

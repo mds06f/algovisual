@@ -39,8 +39,9 @@ export const algorithm = {
     // End node: index 70 (row 5, col 10)
     const END_INDEX = 70;
 
-    // Define some walls to bypass
+    // Define some walls/weights
     const wallIndices = new Set();
+    const weightIndices = new Set();
     if (arr && arr.length === TOTAL_NODES) {
       arr.forEach((cellType, idx) => {
         if (
@@ -49,6 +50,12 @@ export const algorithm = {
           idx !== END_INDEX
         ) {
           wallIndices.add(idx);
+        } else if (
+          cellType === 6 &&
+          idx !== START_INDEX &&
+          idx !== END_INDEX
+        ) {
+          weightIndices.add(idx);
         }
       });
     } else {
@@ -78,8 +85,13 @@ export const algorithm = {
     // Helper to get active grid state representation
     const getGridState = (visitedNodes, pathNodes) => {
       const state = [...grid];
-      visitedNodes.forEach((idx) => {
+      weightIndices.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
+          state[idx] = 6;
+        }
+      });
+      visitedNodes.forEach((idx) => {
+        if (idx !== START_INDEX && idx !== END_INDEX && !weightIndices.has(idx)) {
           state[idx] = STATE_VISITED;
         }
       });
@@ -206,9 +218,8 @@ export const algorithm = {
       for (const v of neighbors) {
         // Skip walls
         if (wallIndices.has(v)) continue;
-        if (visited[v]) continue;
-
-        const alt = dist[u] + 1;
+        const cost = weightIndices.has(v) ? 5 : 1;
+        const alt = dist[u] + cost;
 
         // Snapshot 8: alt = dist[u] + 1
         snapshots.push({
