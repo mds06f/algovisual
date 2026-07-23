@@ -265,6 +265,18 @@
 
           <!-- Sandbox Editor View -->
           <div id="sandbox-container" class="hidden flex-1 flex flex-col bg-slate-950/15 overflow-hidden">
+            <!-- Breakpoints Toolbar -->
+            <div id="sandbox-breakpoints-bar" class="px-3 py-1.5 border-b border-slate-900 bg-slate-950/60 flex items-center justify-between text-[10px] text-slate-400 font-technical">
+              <div class="flex items-center gap-2">
+                <span class="text-cyan-400 font-bold">🔴 Breakpoints:</span>
+                <input type="number" id="input-breakpoint-line" class="bg-slate-950 border border-slate-900 text-cyan-400 px-2 py-0.5 rounded w-14 text-center font-technical focus:outline-none" placeholder="Line #" min="1">
+                <button id="btn-toggle-breakpoint" class="tech-btn text-[9px] px-2 py-0.5 rounded font-bold uppercase" title="Add/Remove Breakpoint at line number">
+                  Set Breakpoint
+                </button>
+              </div>
+              <span id="text-active-breakpoints" class="text-[9px] text-slate-500 font-technical">None</span>
+            </div>
+
             <!-- Syntax-highlight backdrop + transparent textarea overlay -->
             <div id="sandbox-editor-wrap" class="flex-1 relative overflow-hidden">
               <div id="sandbox-highlight" class="sandbox-highlight" aria-hidden="true"></div>

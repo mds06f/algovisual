@@ -56,6 +56,7 @@ let btnRandomize;
 let containerMazeSelect;
 let selectMazeType;
 let btnGenerateMaze;
+let activeBreakpoints = new Set();
 
 export async function initPlayer(algoName) {
   try {
@@ -610,6 +611,11 @@ function startAnimation() {
     if (currentIndex < snapshots.length - 1) {
       currentIndex++;
       renderSnapshot(currentIndex);
+      const curLine = snapshots[currentIndex]?.executingLine;
+      if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+        pauseAnimation();
+        appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+      }
     } else {
       pauseAnimation();
       updateStatusHUD('FINISHED');
@@ -912,6 +918,32 @@ function bindEvents() {
 
       defaultArray = arr;
       resetPlayroom(defaultArray);
+    });
+  }
+
+  // Toggle Breakpoints in Sandbox
+  const btnToggleBp = document.getElementById('btn-toggle-breakpoint');
+  const inputBpLine = document.getElementById('input-breakpoint-line');
+  const textActiveBp = document.getElementById('text-active-breakpoints');
+
+  if (btnToggleBp && inputBpLine) {
+    btnToggleBp.addEventListener('click', () => {
+      const lineNum = parseInt(inputBpLine.value.trim(), 10);
+      if (isNaN(lineNum) || lineNum < 1) {
+        alert('Please enter a valid line number for the breakpoint.');
+        return;
+      }
+      if (activeBreakpoints.has(lineNum)) {
+        activeBreakpoints.delete(lineNum);
+      } else {
+        activeBreakpoints.add(lineNum);
+      }
+      inputBpLine.value = '';
+      if (textActiveBp) {
+        textActiveBp.textContent = activeBreakpoints.size > 0
+          ? Array.from(activeBreakpoints).sort((a, b) => a - b).join(', ')
+          : 'None';
+      }
     });
   }
 
