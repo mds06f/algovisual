@@ -53,6 +53,9 @@ let benchmarkChartContainer;
 let selectHeuristic;
 let containerHeuristicSelect;
 let btnRandomize;
+let containerMazeSelect;
+let selectMazeType;
+let btnGenerateMaze;
 
 export async function initPlayer(algoName) {
   try {
@@ -101,6 +104,9 @@ export async function initPlayer(algoName) {
       'container-heuristic-select',
     );
     btnRandomize = document.getElementById('btn-randomize');
+    containerMazeSelect = document.getElementById('container-maze-select');
+    selectMazeType = document.getElementById('select-maze-type');
+    btnGenerateMaze = document.getElementById('btn-generate-maze');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -143,6 +149,14 @@ export async function initPlayer(algoName) {
         }
       } else {
         containerHeuristicSelect.classList.add('hidden');
+      }
+    }
+
+    if (containerMazeSelect) {
+      if (currentAlgorithm.category === 'Pathfinding') {
+        containerMazeSelect.classList.remove('hidden');
+      } else {
+        containerMazeSelect.classList.add('hidden');
       }
     }
 
@@ -856,6 +870,48 @@ function bindEvents() {
       localStorage.setItem('algovisual_presets', JSON.stringify(updated));
       loadPresetsDropdown();
       if (customInput) customInput.value = '';
+    });
+  }
+
+  // Generate Maze for Pathfinding Grid
+  if (btnGenerateMaze) {
+    btnGenerateMaze.addEventListener('click', () => {
+      const type = selectMazeType ? selectMazeType.value : 'recursive-division';
+      const TOTAL_NODES = 96;
+      const arr = Array(TOTAL_NODES).fill(0); // 0 = empty
+      arr[25] = 1; // start
+      arr[70] = 2; // end
+
+      if (type === 'random') {
+        for (let i = 0; i < TOTAL_NODES; i++) {
+          if (i !== 25 && i !== 70 && Math.random() < 0.35) {
+            arr[i] = 3; // wall
+          }
+        }
+      } else if (type === 'recursive-division') {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 12; c++) {
+            const idx = r * 12 + c;
+            if (idx === 25 || idx === 70) continue;
+            if ((c === 3 && r !== 2 && r !== 6) || (c === 7 && r !== 1 && r !== 5) || (r === 3 && c !== 4 && c !== 9) || (r === 5 && c !== 1 && c !== 8)) {
+              arr[idx] = 3;
+            }
+          }
+        }
+      } else { // prims
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 12; c++) {
+            const idx = r * 12 + c;
+            if (idx === 25 || idx === 70) continue;
+            if ((r % 2 === 1 && c % 2 === 1) || (r % 2 === 0 && Math.random() < 0.4)) {
+              arr[idx] = 3;
+            }
+          }
+        }
+      }
+
+      defaultArray = arr;
+      resetPlayroom(defaultArray);
     });
   }
 

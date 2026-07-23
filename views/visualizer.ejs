@@ -155,14 +155,17 @@
             </button>
           </div>
 
-          <!-- Heuristic Options Selector -->
-          <div id="container-heuristic-select" class="hidden flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200 w-full sm:w-auto">
-            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Heuristic</span>
-            <select id="select-heuristic" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
-              <option value="manhattan">Manhattan</option>
-              <option value="chebyshev">Chebyshev</option>
-              <option value="euclidean">Euclidean</option>
+          <!-- Dynamic Maze Generator Selector -->
+          <div id="container-maze-select" class="hidden flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200 w-full sm:w-auto">
+            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Maze</span>
+            <select id="select-maze-type" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
+              <option value="recursive-division">Recursive Division</option>
+              <option value="prims">Prim's Maze</option>
+              <option value="random">Random Obstacles</option>
             </select>
+            <button id="btn-generate-maze" class="tech-btn text-xs px-3 py-1.5 rounded font-bold uppercase tracking-wider" title="Generate maze obstacles on grid">
+              Generate
+            </button>
           </div>
         </div>
 
