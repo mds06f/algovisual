@@ -17,6 +17,7 @@ let barsContainer;
 let pseudocodeContainer;
 let consoleLog;
 let playPauseBtn;
+let btnUndo;
 let prevBtn;
 let nextBtn;
 let speedSlider;
@@ -69,6 +70,7 @@ export async function initPlayer(algoName) {
     pseudocodeContainer = document.getElementById('pseudocode-container');
     consoleLog = document.getElementById('console-log');
     playPauseBtn = document.getElementById('btn-play');
+    btnUndo = document.getElementById('btn-undo');
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
     speedSlider = document.getElementById('slider-speed');
@@ -654,6 +656,16 @@ function stepPrev() {
   }
 }
 
+function undoAction() {
+  pauseAnimation();
+  if (currentIndex > 0) {
+    currentIndex = Math.max(0, currentIndex - 1);
+    renderSnapshot(currentIndex);
+    appendConsoleLog(`[UNDO] Deep backtracked execution state to step ${currentIndex + 1}`);
+    updateStatusHUD('PAUSED');
+  }
+}
+
 function bindEvents() {
   playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
@@ -663,6 +675,7 @@ function bindEvents() {
     }
   });
 
+  if (btnUndo) btnUndo.addEventListener('click', undoAction);
   prevBtn.addEventListener('click', stepPrev);
   nextBtn.addEventListener('click', stepNext);
 
