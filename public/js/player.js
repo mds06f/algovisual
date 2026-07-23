@@ -1043,7 +1043,7 @@ function bindEvents() {
     );
   }
 
-  // Run custom sandbox algorithm code
+  // Run custom sandbox algorithm code using background Web Worker
   if (btnRunSandbox) {
     btnRunSandbox.addEventListener('click', () => {
       const userCode = sandboxTextarea.value.trim();
@@ -1055,18 +1055,6 @@ function bindEvents() {
       try {
         // Instrument user code to insert loop guards
         const instrumented = instrumentSandboxCode(userCode);
-
-        // Evaluate the function body typed in the textarea
-        const compiledFn = new Function(`return (${instrumented})`)();
-
-        if (typeof compiledFn !== 'function') {
-          throw new Error(
-            'Parsed code is not a function. Make sure it is formatted as: function(arr, targetVal) { ... }',
-          );
-        }
-
-        // Set as the current generator
-        currentAlgorithm.generator = compiledFn;
 
         // Retrieve target if searching
         let targetVal = undefined;
@@ -1080,12 +1068,54 @@ function bindEvents() {
           }
         }
 
-        // Re-initialize playroom
-        resetPlayroom(defaultArray, targetVal);
-        alert('Custom sandbox algorithm loaded successfully!');
+        // Web Worker background thread script
+        const workerScript = `
+          self.onmessage = function(e) {
+            const { code, inputArr, targetVal } = e.data;
+            try {
+              const fn = new Function('return (' + code + ')')();
+              if (typeof fn !== 'function') {
+                throw new Error('Parsed code is not a function.');
+              }
+              const snapshots = fn(inputArr, targetVal);
+              self.postMessage({ success: true, snapshots: snapshots });
+            } catch(err) {
+              self.postMessage({ success: false, error: err.message });
+            }
+          };
+        `;
+
+        const blob = new Blob([workerScript], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(blob);
+        const worker = new Worker(workerUrl);
+
+        worker.onmessage = (e) => {
+          URL.revokeObjectURL(workerUrl);
+          if (e.data.success) {
+            currentAlgorithm.generator = () => e.data.snapshots;
+            resetPlayroom(defaultArray, targetVal);
+            appendConsoleLog('[WEB WORKER] Executed sandbox code asynchronously on background worker thread.');
+            alert('Custom sandbox algorithm executed safely via Web Worker!');
+          } else {
+            console.error('Web Worker Sandbox error:', e.data.error);
+            alert('Web Worker compilation/runtime error:\n' + e.data.error);
+          }
+        };
+
+        worker.onerror = (err) => {
+          URL.revokeObjectURL(workerUrl);
+          console.error('Web Worker error:', err);
+          alert('Web Worker error: ' + err.message);
+        };
+
+        worker.postMessage({
+          code: instrumented,
+          inputArr: [...defaultArray],
+          targetVal: targetVal,
+        });
       } catch (err) {
-        console.error('Sandbox evaluation error:', err);
-        alert('Compilation or runtime error:\n' + err.message);
+        console.error('Sandbox initialization error:', err);
+        alert('Compilation error:\n' + err.message);
       }
     });
   }
