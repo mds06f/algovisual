@@ -291,6 +291,7 @@ function renderBars(
       else if (cellType === 3) cellClass += ' wall';
       else if (cellType === 4) cellClass += ' visited';
       else if (cellType === 5) cellClass += ' path';
+      else if (cellType === 6) cellClass += ' weight';
 
       cell.className = cellClass;
       cell.dataset.index = index;
@@ -302,6 +303,9 @@ function renderBars(
       } else if (cellType === 2) {
         cell.innerHTML =
           '<span class="text-[10px] font-bold text-white flex items-center justify-center h-full select-none">E</span>';
+      } else if (cellType === 6) {
+        cell.innerHTML =
+          '<span class="text-[9px] font-bold text-amber-200 flex items-center justify-center h-full select-none">5</span>';
       } else if (scores && scores[index]) {
         const scoreObj = scores[index];
         const f = scoreObj.f.toFixed(0);
@@ -1310,6 +1314,15 @@ function bindEvents() {
   }
 
   // Interactive pathfinding grid drawing events
+  let isPaintingWeight = false;
+  const btnTogglePaint = document.getElementById('btn-toggle-paint');
+  if (btnTogglePaint) {
+    btnTogglePaint.addEventListener('click', () => {
+      isPaintingWeight = !isPaintingWeight;
+      btnTogglePaint.textContent = isPaintingWeight ? 'Tool: Weight (5)' : 'Tool: Wall';
+    });
+  }
+
   if (barsContainer) {
     barsContainer.addEventListener('mousedown', (e) => {
       if (currentAlgorithm.category !== 'Pathfinding') return;
@@ -1322,13 +1335,13 @@ function bindEvents() {
       // Do not allow drawing over start (index 25) or end (index 70)
       if (index === 25 || index === 70) return;
 
-      // Determine drawing mode (draw wall vs erase wall)
-      if (defaultArray[index] === 3) {
+      const targetType = isPaintingWeight ? 6 : 3;
+      if (defaultArray[index] === targetType) {
         isDrawingWall = false;
         defaultArray[index] = 0;
       } else {
         isDrawingWall = true;
-        defaultArray[index] = 3;
+        defaultArray[index] = targetType;
       }
 
       isGridMouseDown = true;
@@ -1346,7 +1359,8 @@ function bindEvents() {
 
       if (index === 25 || index === 70) return;
 
-      const newType = isDrawingWall ? 3 : 0;
+      const targetType = isPaintingWeight ? 6 : 3;
+      const newType = isDrawingWall ? targetType : 0;
       if (defaultArray[index] !== newType) {
         defaultArray[index] = newType;
         resetPlayroom(defaultArray);
