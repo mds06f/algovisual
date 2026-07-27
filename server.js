@@ -25,6 +25,12 @@ app.get('/compare', (req, res) => {
   res.render('compare', { algoA, algoB });
 });
 
+app.get('/dual', (req, res) => {
+  const algoA = req.query.algoA || 'bubbleSort';
+  const algoB = req.query.algoB || 'insertionSort';
+  res.render('dual', { algoA, algoB });
+});
+
 // Avoid app.listen during Jest test runs
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
