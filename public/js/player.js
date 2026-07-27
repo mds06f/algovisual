@@ -3,6 +3,7 @@
 let snapshots = [];
 let currentIndex = 0;
 let isPlaying = false;
+let isLooping = false;
 let playbackInterval = null;
 let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
@@ -20,6 +21,7 @@ let playPauseBtn;
 let btnUndo;
 let prevBtn;
 let nextBtn;
+let btnLoop;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -73,6 +75,7 @@ export async function initPlayer(algoName) {
     btnUndo = document.getElementById('btn-undo');
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
+    btnLoop = document.getElementById('btn-loop');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -119,10 +122,17 @@ export async function initPlayer(algoName) {
     if (btnToggleSandbox) btnToggleSandbox.textContent = 'Sandbox Mode';
     if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
 
-    // Setup title and description
-    document.getElementById('algo-title').textContent = currentAlgorithm.name;
-    document.getElementById('algo-desc').textContent =
-      currentAlgorithm.description;
+    // Setup document title, page title, description and breadcrumbs
+    document.title = `${currentAlgorithm.name} - AlgoVisual`;
+    const algoTitleElem = document.getElementById('algo-title');
+    if (algoTitleElem) algoTitleElem.textContent = currentAlgorithm.name;
+    const algoDescElem = document.getElementById('algo-desc');
+    if (algoDescElem) algoDescElem.textContent = currentAlgorithm.description;
+
+    const breadcrumbCategory = document.getElementById('breadcrumb-category');
+    const breadcrumbAlgo = document.getElementById('breadcrumb-algo');
+    if (breadcrumbCategory) breadcrumbCategory.textContent = currentAlgorithm.category || 'Algorithms';
+    if (breadcrumbAlgo) breadcrumbAlgo.textContent = currentAlgorithm.name;
 
     // Populate pseudocode lines
     renderPseudocode(currentAlgorithm.pseudocode);
@@ -622,6 +632,9 @@ function startAnimation() {
         pauseAnimation();
         appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
       }
+    } else if (isLooping) {
+      currentIndex = 0;
+      renderSnapshot(currentIndex);
     } else {
       pauseAnimation();
       updateStatusHUD('FINISHED');
@@ -648,6 +661,9 @@ function stepNext() {
     if (currentIndex === snapshots.length - 1) {
       updateStatusHUD('FINISHED');
     }
+  } else if (isLooping) {
+    currentIndex = 0;
+    renderSnapshot(currentIndex);
   }
 }
 
@@ -682,6 +698,32 @@ function bindEvents() {
   if (btnUndo) btnUndo.addEventListener('click', undoAction);
   prevBtn.addEventListener('click', stepPrev);
   nextBtn.addEventListener('click', stepNext);
+
+  if (btnLoop) {
+    btnLoop.addEventListener('click', () => {
+      isLooping = !isLooping;
+      btnLoop.classList.toggle('tech-btn-primary', isLooping);
+      appendConsoleLog(`[PLAYBACK] Auto-loop mode ${isLooping ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
+
+  const btnCopyCode = document.getElementById('btn-copy-code');
+  if (btnCopyCode) {
+    btnCopyCode.addEventListener('click', () => {
+      if (currentAlgorithm && currentAlgorithm.pseudocode) {
+        const textToCopy = currentAlgorithm.pseudocode.join('\n');
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const origText = btnCopyCode.textContent;
+          btnCopyCode.textContent = '✅ Copied!';
+          setTimeout(() => {
+            btnCopyCode.textContent = origText;
+          }, 1500);
+        }).catch(err => {
+          console.error('Failed to copy pseudocode:', err);
+        });
+      }
+    });
+  }
 
   // Speed slider change
   speedSlider.addEventListener('input', (e) => {
