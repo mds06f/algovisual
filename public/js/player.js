@@ -122,10 +122,17 @@ export async function initPlayer(algoName) {
     if (btnToggleSandbox) btnToggleSandbox.textContent = 'Sandbox Mode';
     if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
 
-    // Setup title and description
-    document.getElementById('algo-title').textContent = currentAlgorithm.name;
-    document.getElementById('algo-desc').textContent =
-      currentAlgorithm.description;
+    // Setup document title, page title, description and breadcrumbs
+    document.title = `${currentAlgorithm.name} - AlgoVisual`;
+    const algoTitleElem = document.getElementById('algo-title');
+    if (algoTitleElem) algoTitleElem.textContent = currentAlgorithm.name;
+    const algoDescElem = document.getElementById('algo-desc');
+    if (algoDescElem) algoDescElem.textContent = currentAlgorithm.description;
+
+    const breadcrumbCategory = document.getElementById('breadcrumb-category');
+    const breadcrumbAlgo = document.getElementById('breadcrumb-algo');
+    if (breadcrumbCategory) breadcrumbCategory.textContent = currentAlgorithm.category || 'Algorithms';
+    if (breadcrumbAlgo) breadcrumbAlgo.textContent = currentAlgorithm.name;
 
     // Populate pseudocode lines
     renderPseudocode(currentAlgorithm.pseudocode);
