@@ -3,6 +3,7 @@
 let snapshots = [];
 let currentIndex = 0;
 let isPlaying = false;
+let isLooping = false;
 let playbackInterval = null;
 let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
@@ -20,6 +21,7 @@ let playPauseBtn;
 let btnUndo;
 let prevBtn;
 let nextBtn;
+let btnLoop;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -73,6 +75,7 @@ export async function initPlayer(algoName) {
     btnUndo = document.getElementById('btn-undo');
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
+    btnLoop = document.getElementById('btn-loop');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -622,6 +625,9 @@ function startAnimation() {
         pauseAnimation();
         appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
       }
+    } else if (isLooping) {
+      currentIndex = 0;
+      renderSnapshot(currentIndex);
     } else {
       pauseAnimation();
       updateStatusHUD('FINISHED');
@@ -648,6 +654,9 @@ function stepNext() {
     if (currentIndex === snapshots.length - 1) {
       updateStatusHUD('FINISHED');
     }
+  } else if (isLooping) {
+    currentIndex = 0;
+    renderSnapshot(currentIndex);
   }
 }
 
@@ -682,6 +691,14 @@ function bindEvents() {
   if (btnUndo) btnUndo.addEventListener('click', undoAction);
   prevBtn.addEventListener('click', stepPrev);
   nextBtn.addEventListener('click', stepNext);
+
+  if (btnLoop) {
+    btnLoop.addEventListener('click', () => {
+      isLooping = !isLooping;
+      btnLoop.classList.toggle('tech-btn-primary', isLooping);
+      appendConsoleLog(`[PLAYBACK] Auto-loop mode ${isLooping ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
 
   const btnCopyCode = document.getElementById('btn-copy-code');
   if (btnCopyCode) {
