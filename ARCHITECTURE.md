@@ -1,69 +1,324 @@
-# Architecture
+# 🧭 System Architecture
 
-AlgoVisual is a zero-configuration, interactive computer science algorithm and data structure visualizer playground. It is designed specifically to demystify complex computations for beginners. The application utilizes a lightweight Node.js/Express backend paired with an EJS and Vanilla ES6 JavaScript frontend, creating a sandbox environment that invites open-source newcomers to contribute new visualizations with minimal friction.
+AlgoVisual follows a lightweight **client–server architecture** designed for simplicity, maintainability, and ease of contribution. The backend is responsible only for serving pages and static assets, while all algorithm execution and animation occur inside the user's browser. This approach eliminates unnecessary server-side computation and allows contributors to add new visualisations without modifying the backend.
 
-## System Overview
+---
 
-### High-Level Architecture
-1. **Client (Browser):**
-   - Renders the EJS templates into HTML.
-   - Executes `player.js`, which handles the timeline, animation loop, speed controls, and DOM manipulation (e.g., swapping DOM nodes that represent array elements).
-   - Loads isolated algorithm modules (e.g., `bubbleSort.js`) as ES6 modules. These modules generate a "snapshot" or "frame" array representing every state change.
-2. **Server (Node.js & Express):**
-   - Serves static assets (`/public/*`).
-   - Resolves routes (`/`, `/visualizer`, `/compare`) and renders the appropriate `.ejs` view template, injecting query parameters (like which algorithm to load) directly into the HTML response.
-
-### Data Flow for Visualizations
-The core animation engine revolves around generating a pre-calculated sequence of states (snapshots), which are then "played back" by the client-side player.
-1. The user selects an algorithm on the dashboard.
-2. The browser navigates to `/visualizer?algo=bubbleSort`.
-3. Express captures the `algo` query parameter and renders `visualizer.ejs`, passing `{ algo: 'bubbleSort' }`.
-4. The client browser loads `player.js` and dynamically imports `/algorithms/bubbleSort.js`.
-5. The algorithm module runs purely in-memory and returns an array of `Snapshot` objects.
-6. `player.js` iterates through the `Snapshot` array using `requestAnimationFrame` or `setTimeout` based on the user's selected speed rate, updating the DOM bars and the narration console in sync.
-
-## Directory Structure Deep-Dive
+# 🏗️ High-Level System Architecture
 
 ```text
-algovisual/
-├── public/                 # Static assets served by Express
-│   ├── css/
-│   │   └── style.css       # Global UI tokens (Amber/Warm Charcoal glow), flexbox layouts
-│   ├── js/
-│   │   └── player.js       # Core Visualizer Engine: Timeline, Play/Pause logic, DOM renderer
-│   └── algorithms/         # Isolated ES6 Modules for algorithms
-│       ├── bubbleSort.js   # Generates snapshots for Bubble Sort
-│       └── binarySearch.js # Generates snapshots for Binary Search
-├── views/                  # EJS Templates
-│   ├── dashboard.ejs       # Landing page; Grid selector panel for algorithm categories
-│   ├── visualizer.ejs      # Timeline playground & simulation canvas layout
-│   └── compare.ejs         # Split-screen comparison board for analyzing two algorithms
-├── tests/                  # Test Suites (Jest)
-│   └── routes.test.js      # Verifies Express routing and EJS rendering
-├── server.js               # Express application bootstrap and route definitions
-└── package.json            # Scripts (`npm run dev`, `npm test`) and dependencies
+                           ┌──────────────────────────────┐
+                           │          User Browser         │
+                           └──────────────┬───────────────┘
+                                          │
+                                  HTTP Request
+                                          │
+                                          ▼
+                   ┌───────────────────────────────────────┐
+                   │        Node.js + Express Server        │
+                   │───────────────────────────────────────│
+                   │ • Route Handling                      │
+                   │ • EJS View Rendering                  │
+                   │ • Static File Serving                 │
+                   └──────────────┬────────────────────────┘
+                                  │
+        ┌─────────────────────────┼─────────────────────────┐
+        │                         │                         │
+        ▼                         ▼                         ▼
+ ┌───────────────┐        ┌────────────────┐       ┌────────────────┐
+ │ EJS Templates │        │ Static Assets  │       │ Algorithm Files│
+ │───────────────│        │────────────────│       │────────────────│
+ │ dashboard.ejs │        │ CSS            │       │ bubbleSort.js  │
+ │ visualizer.ejs│        │ player.js      │       │ binarySearch.js│
+ │ compare.ejs   │        │ Images         │       │ mergeSort.js   │
+ └──────┬────────┘        └────────────────┘       └──────┬─────────┘
+        │                                                  │
+        └──────────────────────┬───────────────────────────┘
+                               ▼
+                   ┌────────────────────────────┐
+                   │      Browser Runtime       │
+                   │────────────────────────────│
+                   │ • Dynamic ES6 Imports      │
+                   │ • Snapshot Generation      │
+                   │ • Animation Engine         │
+                   │ • DOM Updates              │
+                   │ • Playback Controls        │
+                   └────────────┬───────────────┘
+                                │
+                                ▼
+                   ┌────────────────────────────┐
+                   │      Interactive UI        │
+                   │────────────────────────────│
+                   │ • Visual Array             │
+                   │ • Code Highlighting        │
+                   │ • Narration Console        │
+                   │ • Timeline Controls        │
+                   └────────────────────────────┘
 ```
 
-## How to Contribute a New Algorithm
+---
 
-Because AlgoVisual isolates algorithms into pure JavaScript modules, adding a new visualization requires **zero build tool configuration** (no Webpack, Babel, or TypeScript configuration needed).
+# ⚙️ Component Architecture
 
-1. **Create the Algorithm File:**
-   Create a new file in `public/algorithms/`, e.g., `mergeSort.js`.
-2. **Implement the Generator:**
-   Write a pure function that accepts an initial array and returns an array of snapshots. A snapshot typically includes:
-   ```javascript
-   {
-       arrayState: [3, 1, 4, 2], // The current array values
-       activeIndices: [0, 1],    // Indices currently being compared/swapped (highlighted in UI)
-       narration: "Comparing 3 and 1" // Text to display in the narration log
-   }
-   ```
-3. **Export the Function:**
-   Ensure the function is exported as an ES6 module (`export default function mergeSort(...)`).
-4. **Test the Integration:**
-   Navigate to `http://localhost:3000/visualizer?algo=mergeSort` to watch your algorithm come to life.
+## 1. Client Layer (Browser)
 
-## Testing Strategy
-- **Backend Routing:** We use `Jest` combined with `Supertest` (`tests/routes.test.js`) to assert that Express properly responds with the correct HTML payloads for various query parameters without needing to spin up the actual HTTP listener.
-- **Frontend Logic:** Because algorithm generators are pure ES6 functions without DOM dependencies, they can be tested independently of the visualization engine.
+The browser performs the majority of the application's work.
+
+### Responsibilities
+
+- Rendering HTML generated by EJS
+- Dynamically loading algorithm modules
+- Executing algorithms in memory
+- Generating visual animations
+- Managing playback controls
+- Updating DOM elements
+- Synchronising pseudocode highlighting
+- Displaying narration messages
+
+No algorithm execution occurs on the server.
+
+---
+
+## 2. Express Server
+
+The Express backend acts as a lightweight application server.
+
+### Responsibilities
+
+- Serving EJS templates
+- Handling application routes
+- Delivering static assets
+- Passing query parameters into templates
+
+### Example Routes
+
+```text
+/
+↓
+Dashboard
+
+/visualizer?algo=bubbleSort
+↓
+Bubble Sort Playground
+
+/compare?left=bubbleSort&right=mergeSort
+↓
+Comparison Mode
+```
+
+Since algorithms execute entirely in the browser, the server remains stateless.
+
+---
+
+## 3. Visualiser Engine (`player.js`)
+
+The visualiser engine is the core of the application.
+
+### Responsibilities
+
+- Importing algorithm modules
+- Managing playback state
+- Timeline progression
+- Animation timing
+- Speed controls
+- Step Forward / Backward
+- Play / Pause
+- Rendering snapshots
+- Updating narration
+- Highlighting pseudocode
+
+The engine is independent of any specific algorithm.
+
+---
+
+## 4. Algorithm Modules
+
+Each algorithm exists as an isolated ES6 module.
+
+```text
+public/
+└── algorithms/
+    ├── bubbleSort.js
+    ├── insertionSort.js
+    ├── quickSort.js
+    └── binarySearch.js
+```
+
+Each module:
+
+- Accepts input data
+- Performs computations
+- Produces snapshots
+- Contains no DOM manipulation
+- Exports a single function
+
+This separation makes algorithms easy to test independently.
+
+---
+
+## 5. Snapshot Model
+
+Algorithms communicate with the visualiser through snapshots.
+
+```text
+Algorithm
+     │
+     ▼
+Generate Snapshot
+     │
+     ▼
+[
+    Snapshot 1,
+    Snapshot 2,
+    Snapshot 3,
+    ...
+]
+     │
+     ▼
+Player Engine
+     │
+     ▼
+DOM Animation
+```
+
+### Example Snapshot
+
+```javascript
+{
+    arrayState: [4, 2, 6, 1],
+    activeIndices: [1, 2],
+    narration: "Comparing 2 and 6",
+    highlightedLine: 5
+}
+```
+
+Snapshots completely decouple algorithm logic from rendering.
+
+---
+
+# 🔄 Request Lifecycle
+
+```text
+User opens browser
+        │
+        ▼
+GET /visualizer?algo=bubbleSort
+        │
+        ▼
+Express Route
+        │
+        ▼
+Render visualizer.ejs
+        │
+        ▼
+Browser receives HTML
+        │
+        ▼
+Load player.js
+        │
+        ▼
+Import bubbleSort.js
+        │
+        ▼
+Generate Snapshots
+        │
+        ▼
+Start Timeline
+        │
+        ▼
+Animate Frames
+```
+
+---
+
+# 📊 Data Flow
+
+```text
+User Input
+     │
+     ▼
+Algorithm Selection
+     │
+     ▼
+Dynamic Module Import
+     │
+     ▼
+Algorithm Execution
+     │
+     ▼
+Snapshot Array
+     │
+     ▼
+Player Engine
+     │
+     ▼
+DOM Renderer
+     │
+     ├────────► Array Visualisation
+     │
+     ├────────► Code Highlighting
+     │
+     ├────────► Narration Updates
+     │
+     └────────► Timeline Controls
+```
+
+---
+
+# 📂 Module Interaction
+
+```text
+                 server.js
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+ dashboard.ejs          visualizer.ejs
+                                 │
+                                 ▼
+                           player.js
+                                 │
+          ┌──────────────────────┼──────────────────────┐
+          │                      │                      │
+          ▼                      ▼                      ▼
+ bubbleSort.js         binarySearch.js         mergeSort.js
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+                           Snapshot Array
+                                 │
+                                 ▼
+                         Visual Components
+```
+
+---
+
+# 🧩 Design Principles
+
+The architecture is built around several key principles:
+
+- **Separation of Concerns** – Routing, rendering, animation, and algorithm logic are isolated into dedicated modules.
+- **Stateless Backend** – The server only serves content; all visualisation logic runs client-side.
+- **Modularity** – Each algorithm is self-contained and can be added or removed independently.
+- **Zero Configuration** – Contributors only need to create a new algorithm module without changing build tools or server configuration.
+- **Extensibility** – New algorithms, visual components, and playback features can be introduced with minimal impact on existing code.
+
+---
+
+# 🚀 Scalability
+
+The modular architecture makes future enhancements straightforward, including:
+
+- Additional sorting algorithms
+- Graph algorithms
+- Tree visualisations
+- Heap and Trie visualisations
+- Dynamic programming visualisations
+- Multiple visual themes
+- Algorithm performance metrics
+- Side-by-side algorithm comparison
+- User-created algorithm modules
+- Persistent saved inputs
+- WebAssembly-powered algorithms for large datasets
+
+By keeping the backend lightweight and isolating visualisation logic in the browser, AlgoVisual remains easy to maintain, beginner-friendly for contributors, and scalable as more algorithms and educational features are added.
