@@ -35,6 +35,23 @@
       </p>
     </div>
 
+    <!-- Search & Category Filter Control Bar -->
+    <div class="cyber-panel p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="relative w-full sm:w-72">
+        <input type="text" id="search-algo" placeholder="🔍 Search algorithms..." class="w-full bg-slate-950 border border-slate-900 text-slate-200 px-3 py-2 rounded text-xs font-technical focus:outline-none focus:border-[#00e1d9]">
+      </div>
+      <div class="flex items-center gap-2 flex-wrap" id="filter-chips">
+        <button data-filter="all" class="filter-chip tech-btn active px-3 py-1.5 rounded text-[10px] font-technical font-bold uppercase">All</button>
+        <button data-filter="Sorting" class="filter-chip tech-btn px-3 py-1.5 rounded text-[10px] font-technical font-bold uppercase">Sorting</button>
+        <button data-filter="Searching" class="filter-chip tech-btn px-3 py-1.5 rounded text-[10px] font-technical font-bold uppercase">Searching</button>
+        <button data-filter="Pathfinding" class="filter-chip tech-btn px-3 py-1.5 rounded text-[10px] font-technical font-bold uppercase">Pathfinding</button>
+      </div>
+    </div>
+
+    <div id="no-algos-msg" class="hidden text-center py-8 text-slate-500 text-xs font-technical uppercase">
+      No matching algorithms found for your filter criteria.
+    </div>
+
     <!-- Algorithm Categories Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       
@@ -50,7 +67,7 @@
         
         <div class="space-y-3 pt-2">
           <!-- Bubble Sort Link -->
-          <a href="/visualizer?algo=bubbleSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=bubbleSort" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Sorting">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -65,7 +82,7 @@
           </a>
 
           <!-- Selection Sort Link -->
-          <a href="/visualizer?algo=selectionSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=selectionSort" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Sorting">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -80,7 +97,7 @@
           </a>
 
           <!-- Insertion Sort Link -->
-          <a href="/visualizer?algo=insertionSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=insertionSort" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Sorting">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -95,7 +112,7 @@
           </a>
 
           <!-- Quick Sort Link -->
-          <a href="/visualizer?algo=quickSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=quickSort" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Sorting">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -110,7 +127,7 @@
           </a>
 
           <!-- Heap Sort Link -->
-          <a href="/visualizer?algo=heapSort" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=heapSort" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Sorting">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -168,7 +185,7 @@
         
         <div class="space-y-3 pt-2">
           <!-- Binary Search Link -->
-          <a href="/visualizer?algo=binarySearch" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=binarySearch" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -183,7 +200,7 @@
           </a>
 
           <!-- Linear Search Link -->
-          <a href="/visualizer?algo=linearSearch" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=linearSearch" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -198,7 +215,7 @@
           </a>
 
           <!-- Min/Max Finder Link -->
-          <a href="/visualizer?algo=minMaxFinder" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=minMaxFinder" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -213,7 +230,7 @@
           </a>
 
           <!-- Reverse Array Link -->
-          <a href="/visualizer?algo=reverseArray" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=reverseArray" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -228,7 +245,7 @@
           </a>
 
           <!-- Fibonacci Sequence Link -->
-          <a href="/visualizer?algo=fibonacci" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=fibonacci" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -243,7 +260,7 @@
           </a>
 
           <!-- BST Insertion Link -->
-          <a href="/visualizer?algo=bstInsert" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=bstInsert" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Searching">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -271,7 +288,7 @@
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <!-- Dijkstra Link -->
-          <a href="/visualizer?algo=dijkstra" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=dijkstra" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Pathfinding">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -286,7 +303,7 @@
           </a>
 
           <!-- A* Search Link -->
-          <a href="/visualizer?algo=aStar" class="block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden">
+          <a href="/visualizer?algo=aStar" class="algo-card block p-4 border border-slate-900 bg-slate-950/40 hover:border-[#00e1d9]/60 hover:bg-[#00e1d9]/5 rounded transition duration-200 group relative overflow-hidden" data-category="Pathfinding">
             <div class="absolute top-0 right-0 w-[2px] h-full bg-[#00e1d9]/50 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
             <div class="flex justify-between items-center">
               <div>
@@ -353,6 +370,51 @@
           updateToggleIcon();
         });
       }
+
+      // Algorithm Search & Filter Logic
+      const searchInput = document.getElementById('search-algo');
+      const filterChips = document.querySelectorAll('.filter-chip');
+      const algoCards = document.querySelectorAll('.algo-card');
+      const noAlgosMsg = document.getElementById('no-algos-msg');
+
+      let currentCategory = 'all';
+
+      const filterCards = () => {
+        const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        let visibleCount = 0;
+
+        algoCards.forEach(card => {
+          const cardText = card.textContent.toLowerCase();
+          const cardCategory = card.getAttribute('data-category') || '';
+          
+          const matchesCategory = currentCategory === 'all' || cardCategory.toLowerCase() === currentCategory.toLowerCase();
+          const matchesQuery = !query || cardText.includes(query);
+
+          if (matchesCategory && matchesQuery) {
+            card.style.display = 'block';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        if (noAlgosMsg) {
+          noAlgosMsg.classList.toggle('hidden', visibleCount > 0);
+        }
+      };
+
+      if (searchInput) {
+        searchInput.addEventListener('input', filterCards);
+      }
+
+      filterChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          filterChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentCategory = chip.getAttribute('data-filter') || 'all';
+          filterCards();
+        });
+      });
     });
   </script>
 </body>
