@@ -185,6 +185,15 @@ export async function initPlayer(algoName) {
       }
     }
 
+    const containerDsInputs = document.getElementById('container-ds-inputs');
+    if (containerDsInputs) {
+      if (currentAlgorithm.category === 'Data Structures') {
+        containerDsInputs.classList.remove('hidden');
+      } else {
+        containerDsInputs.classList.add('hidden');
+      }
+    }
+
     if (currentAlgorithm.category === 'Pathfinding') {
       const TOTAL_NODES = 96;
       defaultArray = Array(TOTAL_NODES).fill(0); // STATE_EMPTY
@@ -704,6 +713,50 @@ function bindEvents() {
       isLooping = !isLooping;
       btnLoop.classList.toggle('tech-btn-primary', isLooping);
       appendConsoleLog(`[PLAYBACK] Auto-loop mode ${isLooping ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
+
+  const btnDsPush = document.getElementById('btn-ds-push');
+  const btnDsPop = document.getElementById('btn-ds-pop');
+  const btnDsEnqueue = document.getElementById('btn-ds-enqueue');
+  const btnDsDequeue = document.getElementById('btn-ds-dequeue');
+  const inputDsVal = document.getElementById('input-ds-val');
+
+  if (btnDsPush) {
+    btnDsPush.addEventListener('click', () => {
+      const val = parseInt(inputDsVal ? inputDsVal.value : '42', 10) || 42;
+      defaultArray.push(val);
+      resetPlayroom([...defaultArray]);
+      appendConsoleLog(`[STACK] PUSH element ${val}. Array length: ${defaultArray.length}`);
+    });
+  }
+
+  if (btnDsPop) {
+    btnDsPop.addEventListener('click', () => {
+      if (defaultArray.length > 0) {
+        const val = defaultArray.pop();
+        resetPlayroom([...defaultArray]);
+        appendConsoleLog(`[STACK] POP element ${val}. Array length: ${defaultArray.length}`);
+      }
+    });
+  }
+
+  if (btnDsEnqueue) {
+    btnDsEnqueue.addEventListener('click', () => {
+      const val = parseInt(inputDsVal ? inputDsVal.value : '42', 10) || 42;
+      defaultArray.push(val);
+      resetPlayroom([...defaultArray]);
+      appendConsoleLog(`[QUEUE] ENQUEUE element ${val}. Rear at ${defaultArray.length - 1}`);
+    });
+  }
+
+  if (btnDsDequeue) {
+    btnDsDequeue.addEventListener('click', () => {
+      if (defaultArray.length > 0) {
+        const val = defaultArray.shift();
+        resetPlayroom([...defaultArray]);
+        appendConsoleLog(`[QUEUE] DEQUEUE front element ${val}. Array length: ${defaultArray.length}`);
+      }
     });
   }
 

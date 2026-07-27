@@ -153,6 +153,26 @@
             </button>
           </div>
 
+          <!-- Data Structure Interactive Controls (Stack/Queue) -->
+          <div id="container-ds-inputs" class="hidden flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-1">Val</span>
+              <input type="number" id="input-ds-val" class="bg-transparent border-none outline-none text-xs placeholder-slate-700 w-[50px] font-technical text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-0 text-center" placeholder="42" value="42">
+            </div>
+            <button id="btn-ds-push" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Push element onto Stack">
+              Push (Stack)
+            </button>
+            <button id="btn-ds-pop" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Pop top element from Stack">
+              Pop (Stack)
+            </button>
+            <button id="btn-ds-enqueue" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Enqueue element to Queue">
+              Enqueue (Queue)
+            </button>
+            <button id="btn-ds-dequeue" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider" title="Dequeue front element from Queue">
+              Dequeue (Queue)
+            </button>
+          </div>
+
           <!-- Random Array Generator -->
           <div id="container-randomize" class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
