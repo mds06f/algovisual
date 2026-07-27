@@ -683,6 +683,24 @@ function bindEvents() {
   prevBtn.addEventListener('click', stepPrev);
   nextBtn.addEventListener('click', stepNext);
 
+  const btnCopyCode = document.getElementById('btn-copy-code');
+  if (btnCopyCode) {
+    btnCopyCode.addEventListener('click', () => {
+      if (currentAlgorithm && currentAlgorithm.pseudocode) {
+        const textToCopy = currentAlgorithm.pseudocode.join('\n');
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const origText = btnCopyCode.textContent;
+          btnCopyCode.textContent = '✅ Copied!';
+          setTimeout(() => {
+            btnCopyCode.textContent = origText;
+          }, 1500);
+        }).catch(err => {
+          console.error('Failed to copy pseudocode:', err);
+        });
+      }
+    });
+  }
+
   // Speed slider change
   speedSlider.addEventListener('input', (e) => {
     const rate = parseFloat(e.target.value);
