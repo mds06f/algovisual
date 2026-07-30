@@ -797,6 +797,63 @@ function bindEvents() {
     });
   }
 
+  const btnRecord = document.getElementById('btn-record');
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let isRecording = false;
+
+  if (btnRecord) {
+    btnRecord.addEventListener('click', () => {
+      const recordIcon = document.getElementById('record-icon');
+      const recordText = document.getElementById('record-text');
+      
+      if (!isRecording) {
+        recordedChunks = [];
+        const canvasContainer = document.getElementById('bars-container');
+        try {
+          const canvas = canvasContainer ? canvasContainer.querySelector('canvas') : null;
+          let stream = canvas && canvas.captureStream ? canvas.captureStream(30) : null;
+          if (stream && typeof MediaRecorder !== 'undefined') {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+              const blob = new Blob(recordedChunks, { type: 'video/webm' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `algovisual-${currentAlgorithm ? currentAlgorithm.name.toLowerCase().replace(/\s+/g, '-') : 'session'}.webm`;
+              a.click();
+              URL.revokeObjectURL(url);
+              appendConsoleLog('[RECORDING] Exported webm animation recording file.');
+            };
+            mediaRecorder.start();
+          }
+        } catch (err) {
+          console.error('MediaRecorder initialisation warning:', err);
+        }
+
+        isRecording = true;
+        if (recordIcon) recordIcon.textContent = '⏹️';
+        if (recordText) recordText.textContent = 'Stop & Save';
+        btnRecord.classList.add('tech-btn-primary');
+        appendConsoleLog('[RECORDING] Started animation stream recording...');
+      } else {
+        isRecording = false;
+        if (recordIcon) recordIcon.textContent = '🔴';
+        if (recordText) recordText.textContent = 'Record';
+        btnRecord.classList.remove('tech-btn-primary');
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        } else {
+          appendConsoleLog('[RECORDING] Animation recording stopped.');
+        }
+      }
+    });
+  }
+
   // Speed slider change
   speedSlider.addEventListener('input', (e) => {
     const rate = parseFloat(e.target.value);
