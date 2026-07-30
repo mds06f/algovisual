@@ -314,7 +314,21 @@ function renderBars(
   auxLeftStart = -1,
   scores = null,
 ) {
-  barsContainer.innerHTML = '';
+  if (category === 'Matrix') {
+    barsContainer.className = 'grid grid-cols-3 gap-3 p-4 justify-center items-center max-w-[280px] mx-auto';
+    arr.forEach((val, index) => {
+      const cell = document.createElement('div');
+      const isHighlighted = highlights.includes(index);
+      cell.className = `w-16 h-16 rounded border flex items-center justify-center font-technical font-bold text-sm transition-all duration-200 ${
+        isHighlighted
+          ? 'border-cyan-400 bg-cyan-950/60 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)] scale-105'
+          : 'border-slate-800 bg-slate-950/60 text-slate-200'
+      }`;
+      cell.textContent = val;
+      barsContainer.appendChild(cell);
+    });
+    return;
+  }
 
   if (category === 'Pathfinding') {
     barsContainer.className = 'grid-visualizer';
