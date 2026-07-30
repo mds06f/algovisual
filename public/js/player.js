@@ -225,11 +225,25 @@ function renderPseudocode(lines) {
   lines.forEach((line, index) => {
     const lineElem = document.createElement('div');
     lineElem.className =
-      'px-4 py-1.5 text-xs sm:text-sm font-mono text-slate-400 border-l-4 border-transparent transition duration-150';
-    // Match indentations
+      'code-line-item px-3 py-1.5 text-xs sm:text-sm font-mono text-slate-400 border-l-4 border-transparent transition duration-150 relative cursor-pointer';
+    
+    const gutterSpan = document.createElement('span');
+    gutterSpan.className = 'code-gutter-num';
+    gutterSpan.textContent = `${index + 1}`;
+
+    const textSpan = document.createElement('span');
     const spaces = line.match(/^\s*/)[0].length;
-    lineElem.style.paddingLeft = `${Math.max(16, spaces * 8 + 16)}px`;
-    lineElem.textContent = line.trim();
+    textSpan.style.paddingLeft = `${spaces * 6}px`;
+    textSpan.textContent = line.trim();
+
+    const tooltipElem = document.createElement('div');
+    tooltipElem.className = 'code-tooltip-overlay';
+    tooltipElem.id = `code-tooltip-${index}`;
+    tooltipElem.textContent = `Line ${index + 1}: ${line.trim()}`;
+
+    lineElem.appendChild(gutterSpan);
+    lineElem.appendChild(textSpan);
+    lineElem.appendChild(tooltipElem);
     lineElem.id = `code-line-${index}`;
     pseudocodeContainer.appendChild(lineElem);
   });
@@ -263,7 +277,7 @@ function renderSnapshot(index) {
   );
 
   // 2. Highlight active pseudocode line
-  updateCodeHighlight(snapshot.executingLine);
+  updateCodeHighlight(snapshot.executingLine, snapshot);
 
   // 3. Update narration text
   narrativeText.textContent = snapshot.description;
@@ -511,7 +525,7 @@ function renderBars(
   }
 }
 
-function updateCodeHighlight(activeLineIndex) {
+function updateCodeHighlight(activeLineIndex, snapshot) {
   // Reset all lines
   const lines = pseudocodeContainer.children;
   for (let i = 0; i < lines.length; i++) {
@@ -522,6 +536,11 @@ function updateCodeHighlight(activeLineIndex) {
   const activeLine = document.getElementById(`code-line-${activeLineIndex}`);
   if (activeLine) {
     activeLine.classList.add('code-line-active');
+    const tooltip = activeLine.querySelector('.code-tooltip-overlay');
+    if (tooltip && snapshot && snapshot.pointers) {
+      const vars = Object.entries(snapshot.pointers).map(([k, v]) => `${k}=${v}`).join(', ');
+      tooltip.textContent = vars ? `🔍 ${vars}` : `Line ${activeLineIndex + 1}`;
+    }
   }
 }
 
@@ -774,6 +793,63 @@ function bindEvents() {
         }).catch(err => {
           console.error('Failed to copy pseudocode:', err);
         });
+      }
+    });
+  }
+
+  const btnRecord = document.getElementById('btn-record');
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let isRecording = false;
+
+  if (btnRecord) {
+    btnRecord.addEventListener('click', () => {
+      const recordIcon = document.getElementById('record-icon');
+      const recordText = document.getElementById('record-text');
+      
+      if (!isRecording) {
+        recordedChunks = [];
+        const canvasContainer = document.getElementById('bars-container');
+        try {
+          const canvas = canvasContainer ? canvasContainer.querySelector('canvas') : null;
+          let stream = canvas && canvas.captureStream ? canvas.captureStream(30) : null;
+          if (stream && typeof MediaRecorder !== 'undefined') {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+              const blob = new Blob(recordedChunks, { type: 'video/webm' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `algovisual-${currentAlgorithm ? currentAlgorithm.name.toLowerCase().replace(/\s+/g, '-') : 'session'}.webm`;
+              a.click();
+              URL.revokeObjectURL(url);
+              appendConsoleLog('[RECORDING] Exported webm animation recording file.');
+            };
+            mediaRecorder.start();
+          }
+        } catch (err) {
+          console.error('MediaRecorder initialisation warning:', err);
+        }
+
+        isRecording = true;
+        if (recordIcon) recordIcon.textContent = '⏹️';
+        if (recordText) recordText.textContent = 'Stop & Save';
+        btnRecord.classList.add('tech-btn-primary');
+        appendConsoleLog('[RECORDING] Started animation stream recording...');
+      } else {
+        isRecording = false;
+        if (recordIcon) recordIcon.textContent = '🔴';
+        if (recordText) recordText.textContent = 'Record';
+        btnRecord.classList.remove('tech-btn-primary');
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        } else {
+          appendConsoleLog('[RECORDING] Animation recording stopped.');
+        }
       }
     });
   }
