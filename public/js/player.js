@@ -282,6 +282,9 @@ function renderSnapshot(index) {
   // 3. Update narration text
   narrativeText.textContent = snapshot.description;
 
+  // 4. Sync URL hash state
+  updateUrlHash();
+
   // 4. Append log to console
   appendConsoleLog(snapshot.description);
 
@@ -541,6 +544,14 @@ function updateCodeHighlight(activeLineIndex, snapshot) {
       const vars = Object.entries(snapshot.pointers).map(([k, v]) => `${k}=${v}`).join(', ');
       tooltip.textContent = vars ? `🔍 ${vars}` : `Line ${activeLineIndex + 1}`;
     }
+  }
+}
+
+function updateUrlHash() {
+  if (!currentAlgorithm) return;
+  const hash = `#algo=${encodeURIComponent(currentAlgorithm.name)}&step=${currentIndex + 1}&arr=${defaultArray.join(',')}`;
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, '', hash);
   }
 }
 
@@ -851,6 +862,20 @@ function bindEvents() {
           appendConsoleLog('[RECORDING] Animation recording stopped.');
         }
       }
+    });
+  }
+
+  const btnShareLink = document.getElementById('btn-share-link');
+  if (btnShareLink) {
+    btnShareLink.addEventListener('click', () => {
+      updateUrlHash();
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const origText = btnShareLink.textContent;
+        btnShareLink.textContent = '✅ Copied!';
+        setTimeout(() => {
+          btnShareLink.textContent = origText;
+        }, 1500);
+      }).catch(err => console.error('Clipboard copy error:', err));
     });
   }
 
