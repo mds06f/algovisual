@@ -185,6 +185,28 @@
             </button>
           </div>
 
+          <!-- Graph Option Controls (shown only for Graph algorithms) -->
+          <div id="container-graph-inputs" class="hidden flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Algorithm</span>
+              <select id="select-graph-algo" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
+                <option value="bfs" selected>BFS Traversal</option>
+                <option value="dfs">DFS Traversal</option>
+                <option value="prim">Prim's MST</option>
+                <option value="kruskal">Kruskal's MST</option>
+              </select>
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical border-l border-slate-800 pl-2">Start</span>
+              <select id="select-graph-start" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
+                <option value="A" selected>Node A</option>
+                <option value="B">Node B</option>
+                <option value="C">Node C</option>
+                <option value="D">Node D</option>
+                <option value="E">Node E</option>
+                <option value="F">Node F</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Random Array Generator -->
           <div id="container-randomize" class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
