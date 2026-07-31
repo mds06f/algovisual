@@ -1,5 +1,6 @@
 // public/js/player.js
 import { drawGraph } from './graphRenderer.js';
+import { transpileCode } from './astTranspiler.js';
 
 
 let snapshots = [];
@@ -1484,6 +1485,14 @@ function bindEvents() {
     sandboxTextarea.addEventListener('keydown', syncHighlight);
   }
 
+  function transpileOrGuard(code) {
+    if (code.includes('__recordSnapshot') || code.includes('executingLine') || code.includes('highlights')) {
+      return instrumentSandboxCode(code);
+    } else {
+      return transpileCode(code);
+    }
+  }
+
   function instrumentSandboxCode(code) {
     const firstBraceIndex = code.indexOf('{');
     if (firstBraceIndex === -1) return code;
@@ -1515,8 +1524,8 @@ function bindEvents() {
       }
 
       try {
-        // Instrument user code to insert loop guards
-        const instrumented = instrumentSandboxCode(userCode);
+        // Instrument/Transpile user code to insert loop guards and snapshots
+        const instrumented = transpileOrGuard(userCode);
 
         // Retrieve target if searching
         let targetVal = undefined;
@@ -1601,7 +1610,7 @@ function bindEvents() {
       }
 
       try {
-        const instrumented = instrumentSandboxCode(userCode);
+        const instrumented = transpileOrGuard(userCode);
         const compiledFn = new Function(`return (${instrumented})`)();
         if (typeof compiledFn !== 'function') {
           throw new Error('Parsed code is not a function.');
