@@ -63,6 +63,8 @@ let activeBreakpoints = new Set();
 let btnExportAlgo;
 let btnImportAlgo;
 let inputImportAlgo;
+let selectHarmony;
+let soundHarmonyMode = 'dynamic';
 
 export async function initPlayer(algoName) {
   try {
@@ -103,6 +105,7 @@ export async function initPlayer(algoName) {
     selectWaveform = document.getElementById('select-waveform');
     sliderPitch = document.getElementById('slider-pitch');
     textPitch = document.getElementById('text-pitch');
+    selectHarmony = document.getElementById('select-harmony');
     btnExportLog = document.getElementById('btn-export-log');
     stepCounterText = document.getElementById('step-counter-text');
     btnBenchmarkSandbox = document.getElementById('btn-benchmark-sandbox');
@@ -540,11 +543,20 @@ function renderBars(
   if (highlights && highlights.length > 0) {
     const val = arr[highlights[0]];
     if (val !== undefined && typeof val === 'number') {
+      let isSwap = false;
+      if (currentIndex > 0 && snapshots[currentIndex] && snapshots[currentIndex - 1]) {
+        const currentArr = snapshots[currentIndex].array;
+        const prevArr = snapshots[currentIndex - 1].array;
+        if (JSON.stringify(currentArr) !== JSON.stringify(prevArr)) {
+          isSwap = true;
+        }
+      }
+
       if (category === 'Pathfinding') {
         // Map node index (0-95) to frequency scale
-        playToneForValue((highlights[0] / 95) * 100);
+        playToneForValue((highlights[0] / 95) * 100, isSwap);
       } else {
-        playToneForValue(val);
+        playToneForValue(val, isSwap);
       }
     }
   }
@@ -1644,6 +1656,14 @@ function bindEvents() {
     });
   }
 
+  // Sound Harmony mode selection
+  if (selectHarmony) {
+    selectHarmony.addEventListener('change', (e) => {
+      soundHarmonyMode = e.target.value;
+      appendConsoleLog(`[AUDIO] Sound harmony mode updated to: ${soundHarmonyMode.toUpperCase()}`);
+    });
+  }
+
   // Download Debug Log
   if (btnExportLog) {
     btnExportLog.addEventListener('click', () => {
@@ -1789,7 +1809,7 @@ export function loadPresetsDropdown() {
   });
 }
 
-function playToneForValue(value) {
+function playToneForValue(value, isSwap = false) {
   if (isAudioMuted) return;
   try {
     if (!audioCtx) {
@@ -1807,24 +1827,53 @@ function playToneForValue(value) {
       minFreq +
       (Math.max(0, Math.min(99, value - 1)) / 99) * (maxFreq - minFreq);
 
-    const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
-    osc.type = soundWaveform;
-    osc.frequency.setValueAtTime(freq * soundPitchMultiplier, audioCtx.currentTime);
+    // Setup frequencies based on Harmony mode
+    const frequencies = [freq];
+
+    // Check Harmony Mode selection: 'single', 'major', 'minor', 'dynamic'
+    const mode = soundHarmonyMode || 'dynamic';
+    if (mode === 'major') {
+      // Major triad: root, major third (5/4), perfect fifth (3/2)
+      frequencies.push(freq * 1.25);
+      frequencies.push(freq * 1.5);
+    } else if (mode === 'minor') {
+      // Minor triad: root, minor third (6/5), perfect fifth (3/2)
+      frequencies.push(freq * 1.2);
+      frequencies.push(freq * 1.5);
+    } else if (mode === 'dynamic') {
+      if (isSwap) {
+        // Major triad for swaps/writes
+        frequencies.push(freq * 1.25);
+        frequencies.push(freq * 1.5);
+      } else {
+        // Minor triad for comparisons/scans
+        frequencies.push(freq * 1.2);
+        frequencies.push(freq * 1.5);
+      }
+    }
 
     // Dynamic volume ramp to prevent audio clicks/pops
-    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    // Scale volume down slightly based on chord complexity
+    const baseVolume = 0.04;
+    const scaledVolume = frequencies.length > 1 ? baseVolume / 1.5 : baseVolume;
+
+    gainNode.gain.setValueAtTime(scaledVolume, audioCtx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
       0.0001,
       audioCtx.currentTime + 0.12,
     );
-
-    osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.12);
+    frequencies.forEach((f) => {
+      const osc = audioCtx.createOscillator();
+      osc.type = soundWaveform;
+      osc.frequency.setValueAtTime(f * soundPitchMultiplier, audioCtx.currentTime);
+      osc.connect(gainNode);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    });
   } catch (err) {
     console.error('Audio sonification synthesis failed:', err);
   }
