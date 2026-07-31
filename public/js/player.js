@@ -1,4 +1,6 @@
 // public/js/player.js
+import { drawGraph } from './graphRenderer.js';
+
 
 let snapshots = [];
 let currentIndex = 0;
@@ -65,6 +67,9 @@ let btnImportAlgo;
 let inputImportAlgo;
 let selectHarmony;
 let soundHarmonyMode = 'dynamic';
+let containerGraphInputs;
+let selectGraphAlgo;
+let selectGraphStart;
 
 export async function initPlayer(algoName) {
   try {
@@ -122,6 +127,9 @@ export async function initPlayer(algoName) {
     containerMazeSelect = document.getElementById('container-maze-select');
     selectMazeType = document.getElementById('select-maze-type');
     btnGenerateMaze = document.getElementById('btn-generate-maze');
+    containerGraphInputs = document.getElementById('container-graph-inputs');
+    selectGraphAlgo = document.getElementById('select-graph-algo');
+    selectGraphStart = document.getElementById('select-graph-start');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -182,7 +190,7 @@ function applyCategoryUI(category, algoName) {
   let initialTarget = undefined;
 
   if (customInputsContainer) {
-    if (category === 'Pathfinding') {
+    if (category === 'Pathfinding' || category === 'Graph') {
       customInputsContainer.classList.add('hidden');
     } else {
       customInputsContainer.classList.remove('hidden');
@@ -228,6 +236,29 @@ function applyCategoryUI(category, algoName) {
     }
   }
 
+  if (containerGraphInputs) {
+    if (category === 'Graph') {
+      containerGraphInputs.classList.remove('hidden');
+      if (selectGraphAlgo && selectGraphStart) {
+        initialTarget = {
+          algoType: selectGraphAlgo.value,
+          startNode: selectGraphStart.value
+        };
+      }
+    } else {
+      containerGraphInputs.classList.add('hidden');
+    }
+  }
+
+  const containerRandomize = document.getElementById('container-randomize');
+  if (containerRandomize) {
+    if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures') {
+      containerRandomize.classList.add('hidden');
+    } else {
+      containerRandomize.classList.remove('hidden');
+    }
+  }
+
   return initialTarget;
 }
 
@@ -263,8 +294,19 @@ function renderPseudocode(lines) {
 function resetPlayroom(array, target) {
   pauseAnimation();
   currentIndex = 0;
+
+  let finalTarget = target;
+  if (!finalTarget && currentAlgorithm && currentAlgorithm.category === 'Graph') {
+    if (selectGraphAlgo && selectGraphStart) {
+      finalTarget = {
+        algoType: selectGraphAlgo.value,
+        startNode: selectGraphStart.value
+      };
+    }
+  }
+
   // Generate snapshots
-  snapshots = currentAlgorithm.generator(array, target);
+  snapshots = currentAlgorithm.generator(array, finalTarget);
 
   // Render first snapshot
   renderSnapshot(currentIndex);
@@ -325,6 +367,32 @@ function renderBars(
   auxLeftStart = -1,
   scores = null,
 ) {
+  barsContainer.innerHTML = '';
+
+  if (category === 'Graph') {
+    barsContainer.className = 'w-full h-full flex items-center justify-center relative';
+    
+    // Check if canvas already exists inside barsContainer
+    let canvas = document.getElementById('graph-canvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'graph-canvas';
+      canvas.width = 600;
+      canvas.height = 360;
+      canvas.className = 'w-full h-full block bg-slate-950/20';
+      barsContainer.appendChild(canvas);
+    }
+    
+    // Get the current snapshot object
+    const snapshot = snapshots[currentIndex];
+    
+    // Dynamically draw the graph using graphRenderer
+    if (drawGraph) {
+      drawGraph(canvas, snapshot);
+    }
+    return;
+  }
+
   if (category === 'Matrix') {
     barsContainer.className = 'grid grid-cols-3 gap-3 p-4 justify-center items-center max-w-[280px] mx-auto';
     arr.forEach((val, index) => {
@@ -1156,6 +1224,20 @@ function bindEvents() {
     selectHeuristic.addEventListener('change', (e) => {
       const val = e.target.value;
       resetPlayroom(defaultArray, val);
+    });
+  }
+
+  // Change event on select-graph-algo dropdown
+  if (selectGraphAlgo) {
+    selectGraphAlgo.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
+    });
+  }
+
+  // Change event on select-graph-start dropdown
+  if (selectGraphStart) {
+    selectGraphStart.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
     });
   }
 
