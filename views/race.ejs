@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Agent Algorithm Race Arena - AlgoVisual</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.classList.add('light-theme');
+    }
+  </script>
+  <style>
+    .race-bars-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 120px;
+      width: 100%;
+      gap: 1px;
+    }
+    .race-bar {
+      flex: 1;
+      height: 100%;
+      background: linear-gradient(to top, #1e3a5f, #2563eb33);
+      border-radius: 1px 1px 0 0;
+      transition: height 0.1s ease;
+    }
+    .race-bar.highlight {
+      background: #00e1d9;
+      box-shadow: 0 0 4px #00e1d9;
+    }
+    .race-bar.completed {
+      background: #10b981;
+    }
+    .algo-select {
+      background: #090d15;
+      border: 1px solid #1e293b;
+      color: #00e1d9;
+      font-size: 11px;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      outline: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 relative overflow-x-hidden">
+  
+  <div class="max-w-7xl mx-auto flex flex-col min-h-[90vh]">
+    
+    <!-- Top Nav bar -->
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <a href="/" class="tech-btn px-4 py-2 rounded text-xs transition duration-200 flex items-center gap-2">
+          <span>⬅</span> Back to Dashboard
+        </a>
+        <button id="theme-toggle" class="tech-btn p-2 rounded text-xs flex items-center justify-center w-8 h-8" title="Toggle Light/Dark Theme">
+          <span id="theme-toggle-icon">☀️</span>
+        </button>
+      </div>
+      <div class="text-right">
+        <h2 class="text-[10px] text-slate-500 uppercase tracking-widest font-technical">Multi-Agent Performance Arena</h2>
+        <h1 class="text-lg font-bold text-[#00e1d9] font-technical uppercase">4-Agent Race Room</h1>
+      </div>
+    </div>
+
+    <!-- Configuration Bar -->
+    <div class="cyber-panel p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-400 font-technical uppercase tracking-wider">Engine 1:</span>
+          <select id="select-algo-1" class="algo-select">
+            <option value="bubbleSort" <%= algo1 === 'bubbleSort' ? 'selected' : '' %>>Bubble Sort</option>
+            <option value="selectionSort" <%= algo1 === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+            <option value="insertionSort" <%= algo1 === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+            <option value="quickSort" <%= algo1 === 'quickSort' ? 'selected' : '' %>>Quick Sort</option>
+            <option value="heapSort" <%= algo1 === 'heapSort' ? 'selected' : '' %>>Heap Sort</option>
+            <option value="mergeSort" <%= algo1 === 'mergeSort' ? 'selected' : '' %>>Merge Sort</option>
+            <option value="countingSort" <%= algo1 === 'countingSort' ? 'selected' : '' %>>Counting Sort</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-400 font-technical uppercase tracking-wider">Engine 2:</span>
+          <select id="select-algo-2" class="algo-select">
+            <option value="bubbleSort" <%= algo2 === 'bubbleSort' ? 'selected' : '' %>>Bubble Sort</option>
+            <option value="selectionSort" <%= algo2 === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+            <option value="insertionSort" <%= algo2 === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+            <option value="quickSort" <%= algo2 === 'quickSort' ? 'selected' : '' %>>Quick Sort</option>
+            <option value="heapSort" <%= algo2 === 'heapSort' ? 'selected' : '' %>>Heap Sort</option>
+            <option value="mergeSort" <%= algo2 === 'mergeSort' ? 'selected' : '' %>>Merge Sort</option>
+            <option value="countingSort" <%= algo2 === 'countingSort' ? 'selected' : '' %>>Counting Sort</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-400 font-technical uppercase tracking-wider">Engine 3:</span>
+          <select id="select-algo-3" class="algo-select">
+            <option value="bubbleSort" <%= algo3 === 'bubbleSort' ? 'selected' : '' %>>Bubble Sort</option>
+            <option value="selectionSort" <%= algo3 === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+            <option value="insertionSort" <%= algo3 === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+            <option value="quickSort" <%= algo3 === 'quickSort' ? 'selected' : '' %>>Quick Sort</option>
+            <option value="heapSort" <%= algo3 === 'heapSort' ? 'selected' : '' %>>Heap Sort</option>
+            <option value="mergeSort" <%= algo3 === 'mergeSort' ? 'selected' : '' %>>Merge Sort</option>
+            <option value="countingSort" <%= algo3 === 'countingSort' ? 'selected' : '' %>>Counting Sort</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-400 font-technical uppercase tracking-wider">Engine 4:</span>
+          <select id="select-algo-4" class="algo-select">
+            <option value="bubbleSort" <%= algo4 === 'bubbleSort' ? 'selected' : '' %>>Bubble Sort</option>
+            <option value="selectionSort" <%= algo4 === 'selectionSort' ? 'selected' : '' %>>Selection Sort</option>
+            <option value="insertionSort" <%= algo4 === 'insertionSort' ? 'selected' : '' %>>Insertion Sort</option>
+            <option value="quickSort" <%= algo4 === 'quickSort' ? 'selected' : '' %>>Quick Sort</option>
+            <option value="heapSort" <%= algo4 === 'heapSort' ? 'selected' : '' %>>Heap Sort</option>
+            <option value="mergeSort" <%= algo4 === 'mergeSort' ? 'selected' : '' %>>Merge Sort</option>
+            <option value="countingSort" <%= algo4 === 'countingSort' ? 'selected' : '' %>>Counting Sort</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="btn-load-race" class="tech-btn tech-btn-primary text-xs px-4 py-2.5 rounded font-bold uppercase tracking-wider">Load Algorithms</button>
+        <button id="btn-randomize-dataset" class="tech-btn text-xs px-3 py-2.5 rounded font-bold uppercase tracking-wider">New Dataset (500)</button>
+      </div>
+    </div>
+
+    <!-- 4 Viewports Grid Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      
+      <!-- Viewport 1 -->
+      <div class="cyber-panel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-1.5">
+          <h2 id="title-viewport-1" class="text-xs font-bold text-[#00e1d9] font-technical uppercase">Engine 1</h2>
+          <span id="badge-status-1" class="text-[8px] font-technical bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase">READY</span>
+        </div>
+        <div class="border border-slate-900 bg-slate-950/40 rounded p-2 flex items-end justify-center min-h-[130px]">
+          <div id="container-bars-1" class="race-bars-container"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] font-technical text-center">
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Comps</span>
+            <span id="stat-comp-1" class="text-xs font-bold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Swaps</span>
+            <span id="stat-swap-1" class="text-xs font-bold text-rose-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Steps</span>
+            <span id="stat-step-1" class="text-xs font-bold text-[#00e1d9]">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewport 2 -->
+      <div class="cyber-panel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-1.5">
+          <h2 id="title-viewport-2" class="text-xs font-bold text-[#f43f5e] font-technical uppercase">Engine 2</h2>
+          <span id="badge-status-2" class="text-[8px] font-technical bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase">READY</span>
+        </div>
+        <div class="border border-slate-900 bg-slate-950/40 rounded p-2 flex items-end justify-center min-h-[130px]">
+          <div id="container-bars-2" class="race-bars-container"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] font-technical text-center">
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Comps</span>
+            <span id="stat-comp-2" class="text-xs font-bold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Swaps</span>
+            <span id="stat-swap-2" class="text-xs font-bold text-rose-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Steps</span>
+            <span id="stat-step-2" class="text-xs font-bold text-[#f43f5e]">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewport 3 -->
+      <div class="cyber-panel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-1.5">
+          <h2 id="title-viewport-3" class="text-xs font-bold text-[#f59e0b] font-technical uppercase">Engine 3</h2>
+          <span id="badge-status-3" class="text-[8px] font-technical bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase">READY</span>
+        </div>
+        <div class="border border-slate-900 bg-slate-950/40 rounded p-2 flex items-end justify-center min-h-[130px]">
+          <div id="container-bars-3" class="race-bars-container"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] font-technical text-center">
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Comps</span>
+            <span id="stat-comp-3" class="text-xs font-bold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Swaps</span>
+            <span id="stat-swap-3" class="text-xs font-bold text-rose-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Steps</span>
+            <span id="stat-step-3" class="text-xs font-bold text-[#f59e0b]">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viewport 4 -->
+      <div class="cyber-panel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-900 pb-1.5">
+          <h2 id="title-viewport-4" class="text-xs font-bold text-[#10b981] font-technical uppercase">Engine 4</h2>
+          <span id="badge-status-4" class="text-[8px] font-technical bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase">READY</span>
+        </div>
+        <div class="border border-slate-900 bg-slate-950/40 rounded p-2 flex items-end justify-center min-h-[130px]">
+          <div id="container-bars-4" class="race-bars-container"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] font-technical text-center">
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Comps</span>
+            <span id="stat-comp-4" class="text-xs font-bold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Swaps</span>
+            <span id="stat-swap-4" class="text-xs font-bold text-rose-400">0</span>
+          </div>
+          <div class="bg-slate-950/40 p-1 rounded border border-slate-900">
+            <span class="text-slate-500 uppercase block">Steps</span>
+            <span id="stat-step-4" class="text-xs font-bold text-[#10b981]">0</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Performance Line Chart -->
+    <div class="cyber-panel p-4 flex flex-col mb-6">
+      <div class="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-900">
+        <span class="text-xs font-bold text-slate-200 font-technical uppercase tracking-wider">Real-Time Performance Monitor</span>
+        <span class="text-[9px] text-slate-500 font-technical">LIVE TELEMETRY (COMPLETED OPERATIONS vs STEPS)</span>
+      </div>
+      <div class="relative w-full h-44">
+        <svg id="race-chart" class="w-full h-full bg-slate-950/20 border border-slate-900 rounded p-1" viewBox="0 0 800 200" preserveAspectRatio="none">
+          <!-- Horizontal grid lines -->
+          <line x1="50" y1="20" x2="780" y2="20" stroke="#1e293b" stroke-dasharray="3,3" />
+          <line x1="50" y1="70" x2="780" y2="70" stroke="#1e293b" stroke-dasharray="3,3" />
+          <line x1="50" y1="120" x2="780" y2="120" stroke="#1e293b" stroke-dasharray="3,3" />
+          <line x1="50" y1="170" x2="780" y2="170" stroke="#1e293b" stroke-dasharray="3,3" />
+          
+          <!-- Axis labels (Y-axis labels dynamically updated) -->
+          <text x="15" y="24" fill="#64748b" class="text-[8px] font-mono" id="chart-label-max">Max</text>
+          <text x="15" y="174" fill="#64748b" class="text-[8px] font-mono">Min</text>
+          
+          <path id="chart-line-1" fill="none" stroke="#00e1d9" stroke-width="2.5" d="" />
+          <path id="chart-line-2" fill="none" stroke="#f43f5e" stroke-width="2.5" d="" />
+          <path id="chart-line-3" fill="none" stroke="#f59e0b" stroke-width="2.5" d="" />
+          <path id="chart-line-4" fill="none" stroke="#10b981" stroke-width="2.5" d="" />
+        </svg>
+      </div>
+      
+      <!-- Chart Legend -->
+      <div class="flex justify-center gap-6 mt-3 text-[9px] font-technical uppercase select-none">
+        <div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-[#00e1d9] rounded-sm"></span><span id="legend-name-1">Engine 1</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-[#f43f5e] rounded-sm"></span><span id="legend-name-2">Engine 2</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-[#f59e0b] rounded-sm"></span><span id="legend-name-3">Engine 3</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-[#10b981] rounded-sm"></span><span id="legend-name-4">Engine 4</span></div>
+      </div>
+    </div>
+
+    <!-- Control Toolbar -->
+    <div class="cyber-panel p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="btn-prev" class="tech-btn p-2.5 rounded text-xs flex items-center gap-1.5" title="Step Backward">
+          <span>⏮</span> Back
+        </button>
+        <button id="btn-play" class="tech-btn tech-btn-primary px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <span>▶</span> Start Race
+        </button>
+        <button id="btn-next" class="tech-btn p-2.5 rounded text-xs flex items-center gap-1.5" title="Step Forward">
+          <span>⏭</span> Next
+        </button>
+        <button id="btn-reset" class="tech-btn p-2.5 rounded text-xs flex items-center gap-1.5" title="Reset Arena">
+          <span>🔄</span> Reset
+        </button>
+        <span id="step-counter" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-2 rounded select-none min-w-[100px] text-center">Step 0 / 0</span>
+      </div>
+
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <span class="text-[10px] text-slate-500 font-technical uppercase tracking-wider">Speed Delay</span>
+        <input type="range" id="slider-speed" min="1" max="1000" step="10" value="300" class="tech-slider w-28 cursor-pointer">
+        <span id="text-speed" class="text-xs font-technical font-bold text-[#00e1d9]">300ms</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/js/racePlayer.js"></script>
+</body>
+</html>
