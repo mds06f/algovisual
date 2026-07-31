@@ -60,6 +60,9 @@ let containerMazeSelect;
 let selectMazeType;
 let btnGenerateMaze;
 let activeBreakpoints = new Set();
+let btnExportAlgo;
+let btnImportAlgo;
+let inputImportAlgo;
 
 export async function initPlayer(algoName) {
   try {
@@ -87,6 +90,9 @@ export async function initPlayer(algoName) {
     btnDeletePreset = document.getElementById('btn-delete-preset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
     btnRunSandbox = document.getElementById('btn-run-sandbox');
+    btnExportAlgo = document.getElementById('btn-export-algo');
+    btnImportAlgo = document.getElementById('btn-import-algo');
+    inputImportAlgo = document.getElementById('input-import-algo');
     sandboxContainer = document.getElementById('sandbox-container');
     sandboxTextarea = document.getElementById('sandbox-textarea');
     labelCodeType = document.getElementById('label-code-type');
@@ -137,62 +143,8 @@ export async function initPlayer(algoName) {
     // Populate pseudocode lines
     renderPseudocode(currentAlgorithm.pseudocode);
 
-    // Show/hide target input depending on algorithm category
-    const targetInputContainer = document.getElementById(
-      'container-target-input',
-    );
-    const customInputsContainer = document.getElementById(
-      'container-custom-inputs',
-    );
-    let initialTarget = undefined;
-
-    if (customInputsContainer) {
-      if (currentAlgorithm.category === 'Pathfinding') {
-        customInputsContainer.classList.add('hidden');
-      } else {
-        customInputsContainer.classList.remove('hidden');
-      }
-    }
-
-    if (containerHeuristicSelect) {
-      if (algoName === 'aStar') {
-        containerHeuristicSelect.classList.remove('hidden');
-        if (selectHeuristic) {
-          initialTarget = selectHeuristic.value || 'manhattan';
-        }
-      } else {
-        containerHeuristicSelect.classList.add('hidden');
-      }
-    }
-
-    if (containerMazeSelect) {
-      if (currentAlgorithm.category === 'Pathfinding') {
-        containerMazeSelect.classList.remove('hidden');
-      } else {
-        containerMazeSelect.classList.add('hidden');
-      }
-    }
-
-    if (targetInputContainer) {
-      if (currentAlgorithm.category === 'Searching') {
-        targetInputContainer.classList.remove('hidden');
-        const targetInput = document.getElementById('input-target');
-        if (targetInput) {
-          initialTarget = parseInt(targetInput.value.trim(), 10) || 34;
-        }
-      } else {
-        targetInputContainer.classList.add('hidden');
-      }
-    }
-
-    const containerDsInputs = document.getElementById('container-ds-inputs');
-    if (containerDsInputs) {
-      if (currentAlgorithm.category === 'Data Structures') {
-        containerDsInputs.classList.remove('hidden');
-      } else {
-        containerDsInputs.classList.add('hidden');
-      }
-    }
+    // Apply Category UI element visibility and retrieve initial target value
+    let initialTarget = applyCategoryUI(currentAlgorithm.category, algoName);
 
     if (currentAlgorithm.category === 'Pathfinding') {
       const TOTAL_NODES = 96;
@@ -218,6 +170,62 @@ export async function initPlayer(algoName) {
   } catch (err) {
     console.error('Failed to initialize visualizer player:', err);
   }
+}
+
+function applyCategoryUI(category, algoName) {
+  const targetInputContainer = document.getElementById('container-target-input');
+  const customInputsContainer = document.getElementById('container-custom-inputs');
+  const containerDsInputs = document.getElementById('container-ds-inputs');
+  let initialTarget = undefined;
+
+  if (customInputsContainer) {
+    if (category === 'Pathfinding') {
+      customInputsContainer.classList.add('hidden');
+    } else {
+      customInputsContainer.classList.remove('hidden');
+    }
+  }
+
+  if (containerHeuristicSelect) {
+    if (algoName === 'aStar') {
+      containerHeuristicSelect.classList.remove('hidden');
+      if (selectHeuristic) {
+        initialTarget = selectHeuristic.value || 'manhattan';
+      }
+    } else {
+      containerHeuristicSelect.classList.add('hidden');
+    }
+  }
+
+  if (containerMazeSelect) {
+    if (category === 'Pathfinding') {
+      containerMazeSelect.classList.remove('hidden');
+    } else {
+      containerMazeSelect.classList.add('hidden');
+    }
+  }
+
+  if (targetInputContainer) {
+    if (category === 'Searching') {
+      targetInputContainer.classList.remove('hidden');
+      const targetInput = document.getElementById('input-target');
+      if (targetInput) {
+        initialTarget = parseInt(targetInput.value.trim(), 10) || 34;
+      }
+    } else {
+      targetInputContainer.classList.add('hidden');
+    }
+  }
+
+  if (containerDsInputs) {
+    if (category === 'Data Structures') {
+      containerDsInputs.classList.remove('hidden');
+    } else {
+      containerDsInputs.classList.add('hidden');
+    }
+  }
+
+  return initialTarget;
 }
 
 function renderPseudocode(lines) {
@@ -819,6 +827,156 @@ function bindEvents() {
           console.error('Failed to copy pseudocode:', err);
         });
       }
+    });
+  }
+
+  // ── Import/Export Package Listeners ────────────────────────────────────
+  if (btnExportAlgo) {
+    btnExportAlgo.addEventListener('click', () => {
+      if (!currentAlgorithm) return;
+      
+      const generatorCode = sandboxTextarea && sandboxTextarea.value.trim()
+        ? sandboxTextarea.value.trim()
+        : currentAlgorithm.generator.toString();
+
+      const packageData = {
+        name: currentAlgorithm.name,
+        category: currentAlgorithm.category,
+        description: currentAlgorithm.description,
+        pseudocode: currentAlgorithm.pseudocode,
+        generatorCode: generatorCode,
+        defaultArray: defaultArray
+      };
+
+      const jsonStr = JSON.stringify(packageData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentAlgorithm.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.algovisual`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      appendConsoleLog(`[SYSTEM] Exported algorithm package: ${currentAlgorithm.name}`);
+    });
+  }
+
+  if (btnImportAlgo && inputImportAlgo) {
+    btnImportAlgo.addEventListener('click', () => {
+      inputImportAlgo.click();
+    });
+
+    inputImportAlgo.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+
+          // Validation
+          if (!imported.name || typeof imported.name !== 'string') {
+            throw new Error("Missing or invalid 'name' field.");
+          }
+          if (!imported.category || typeof imported.category !== 'string') {
+            throw new Error("Missing or invalid 'category' field.");
+          }
+          if (typeof imported.description !== 'string') {
+            throw new Error("Missing or invalid 'description' field.");
+          }
+          if (!Array.isArray(imported.pseudocode)) {
+            throw new Error("Missing or invalid 'pseudocode' field (must be an array).");
+          }
+          for (let i = 0; i < imported.pseudocode.length; i++) {
+            if (typeof imported.pseudocode[i] !== 'string') {
+              throw new Error(`Line ${i + 1} of 'pseudocode' is not a string.`);
+            }
+          }
+          if (!imported.generatorCode || typeof imported.generatorCode !== 'string') {
+            throw new Error("Missing or invalid 'generatorCode' field.");
+          }
+          if (imported.defaultArray !== undefined && !Array.isArray(imported.defaultArray)) {
+            throw new Error("'defaultArray' field must be an array.");
+          }
+
+          // Compile generatorCode
+          let parsedGenerator;
+          try {
+            parsedGenerator = new Function('return (' + imported.generatorCode + ')')();
+            if (typeof parsedGenerator !== 'function') {
+              throw new Error("Compiled generatorCode is not a function.");
+            }
+          } catch (compileErr) {
+            throw new Error("Compilation failed: " + compileErr.message);
+          }
+
+          // Dynamic registration:
+          currentAlgorithm = {
+            name: imported.name,
+            category: imported.category,
+            description: imported.description,
+            pseudocode: imported.pseudocode,
+            generator: parsedGenerator
+          };
+
+          // Update Document and DOM Titles/Descriptions
+          document.title = `${currentAlgorithm.name} - AlgoVisual`;
+          const algoTitleElem = document.getElementById('algo-title');
+          if (algoTitleElem) algoTitleElem.textContent = currentAlgorithm.name;
+          const algoDescElem = document.getElementById('algo-desc');
+          if (algoDescElem) algoDescElem.textContent = currentAlgorithm.description;
+
+          const breadcrumbCategory = document.getElementById('breadcrumb-category');
+          const breadcrumbAlgo = document.getElementById('breadcrumb-algo');
+          if (breadcrumbCategory) breadcrumbCategory.textContent = currentAlgorithm.category || 'Algorithms';
+          if (breadcrumbAlgo) breadcrumbAlgo.textContent = currentAlgorithm.name;
+
+          // Render updated pseudocode
+          renderPseudocode(currentAlgorithm.pseudocode);
+
+          // Update sandbox editor code
+          if (sandboxTextarea) {
+            sandboxTextarea.value = imported.generatorCode;
+            syncHighlight();
+          }
+
+          // Apply new default array
+          if (Array.isArray(imported.defaultArray)) {
+            defaultArray = imported.defaultArray;
+          } else {
+            if (currentAlgorithm.category === 'Pathfinding') {
+              const TOTAL_NODES = 96;
+              defaultArray = Array(TOTAL_NODES).fill(0); // STATE_EMPTY
+              defaultArray[25] = 1; // STATE_START
+              defaultArray[70] = 2; // STATE_END
+              const defaultWalls = [17, 29, 41, 53, 65, 43, 44, 45, 46];
+              defaultWalls.forEach((idx) => {
+                defaultArray[idx] = 3; // STATE_WALL
+              });
+            } else {
+              defaultArray = [23, 45, 12, 56, 34, 18, 9, 41];
+            }
+          }
+
+          // Apply Category UI elements
+          const initialTarget = applyCategoryUI(currentAlgorithm.category, undefined);
+
+          // Reset playroom
+          resetPlayroom(defaultArray, initialTarget);
+
+          appendConsoleLog(`[IMPORT] Successfully imported and registered algorithm: ${currentAlgorithm.name}`);
+          alert(`Successfully imported and registered algorithm "${currentAlgorithm.name}"!`);
+        } catch (err) {
+          console.error("Import error:", err);
+          alert("Failed to import algorithm package:\n" + err.message);
+        }
+      };
+
+      reader.readAsText(file);
+      e.target.value = '';
     });
   }
 
