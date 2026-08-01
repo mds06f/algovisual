@@ -91,6 +91,7 @@
               <span id="audio-toggle-icon">🔇</span>
             </button>
             <button id="btn-audio-settings" class="tech-btn p-3 rounded text-xs" title="Sound Settings (Waveform & Pitch)">⚙</button>
+            <button id="btn-memory-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-1.5" title="Toggle Memory Profiler Drawer">📊 Profiler</button>
             <span id="step-counter-text" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-3 rounded select-none min-w-[95px] text-center">Step 0 / 0</span>
           </div>
 
@@ -118,6 +119,79 @@
                 <option value="minor">Minor Triad</option>
                 <option value="dynamic" selected>Auto Chords</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Memory Profiler Drawer -->
+          <div id="memory-profiler-drawer" class="hidden w-full flex flex-col bg-[#090d16] border border-slate-900 rounded p-4 gap-4 mt-2">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-900">
+              <div class="flex items-center gap-2">
+                <span class="led-indicator led-active animate-pulse"></span>
+                <span class="text-xs font-bold text-slate-200 font-technical uppercase tracking-wider">Memory Profiler HUD</span>
+              </div>
+              <span class="text-[9px] text-slate-500 font-technical uppercase">Real-Time Heap Allocation Analysis</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Live Allocation Meter -->
+              <div class="bg-slate-950/40 p-3 rounded border border-slate-900 flex flex-col justify-between h-36">
+                <div>
+                  <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider block mb-2">Live Heap Consumption</span>
+                  <div class="flex items-baseline gap-1">
+                    <span id="memory-total-bytes" class="text-lg font-bold text-[#00e1d9] font-mono">0</span>
+                    <span class="text-[9px] text-slate-400 font-mono font-bold">BYTES</span>
+                  </div>
+                </div>
+                <div class="space-y-1 mt-2 text-[8px] font-technical">
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Primary Array</span>
+                    <span id="memory-primary-bytes" class="font-mono text-slate-300">0 B</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Auxiliary arrays</span>
+                    <span id="memory-aux-bytes" class="font-mono text-slate-300">0 B</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Stack allocation</span>
+                    <span id="memory-stack-bytes" class="font-mono text-slate-300">0 B</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500">Local variables</span>
+                    <span id="memory-variables-bytes" class="font-mono text-slate-300">0 B</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- GC Drops & Peak HUD -->
+              <div class="bg-slate-950/40 p-3 rounded border border-slate-900 flex flex-col justify-between h-36">
+                <div>
+                  <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider block mb-2">Profiler Highlights</span>
+                  <div class="space-y-2 text-[9px] font-technical">
+                    <div class="flex justify-between items-center bg-slate-950 p-1.5 rounded border border-slate-900/60">
+                      <span class="text-slate-500">GC DROPS</span>
+                      <span id="memory-gc-drops" class="font-mono text-rose-400 font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-950 p-1.5 rounded border border-slate-900/60">
+                      <span class="text-slate-500">PEAK HEAP</span>
+                      <span id="memory-peak-bytes" class="font-mono text-amber-400 font-bold">0 B</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-950 p-1.5 rounded border border-slate-900/60">
+                      <span class="text-slate-500">CURRENT FRAMES</span>
+                      <span id="memory-frames-count" class="font-mono text-cyan-400 font-bold">1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Heap Chart -->
+              <div class="bg-slate-950/40 p-3 rounded border border-slate-900 h-36 flex flex-col justify-between relative overflow-hidden">
+                <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider block mb-1">Heap History Chart</span>
+                <div class="flex-1 w-full relative">
+                  <svg id="memory-heap-chart" class="w-full h-full bg-slate-950/20 border border-slate-900/50 rounded" viewBox="0 0 300 80" preserveAspectRatio="none">
+                    <path id="memory-chart-path" fill="none" stroke="#00e1d9" stroke-width="2" d="" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 

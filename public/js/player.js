@@ -1,6 +1,7 @@
 // public/js/player.js
 import { drawGraph } from './graphRenderer.js';
 import { transpileCode } from './astTranspiler.js';
+import { calculateMemory, updateMemoryChart } from './memoryProfiler.js';
 
 
 let snapshots = [];
@@ -71,6 +72,8 @@ let soundHarmonyMode = 'dynamic';
 let containerGraphInputs;
 let selectGraphAlgo;
 let selectGraphStart;
+let memoryProfilerDrawer;
+let btnMemoryToggle;
 
 export async function initPlayer(algoName) {
   try {
@@ -131,6 +134,8 @@ export async function initPlayer(algoName) {
     containerGraphInputs = document.getElementById('container-graph-inputs');
     selectGraphAlgo = document.getElementById('select-graph-algo');
     selectGraphStart = document.getElementById('select-graph-start');
+    memoryProfilerDrawer = document.getElementById('memory-profiler-drawer');
+    btnMemoryToggle = document.getElementById('btn-memory-toggle');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -309,6 +314,14 @@ function resetPlayroom(array, target) {
   // Generate snapshots
   snapshots = currentAlgorithm.generator(array, finalTarget);
 
+  // Pre-calculate memory states for the active session snapshots
+  let prevMem = null;
+  snapshots.forEach((snap) => {
+    const mem = calculateMemory(snap, prevMem);
+    snap.memory = mem;
+    prevMem = mem;
+  });
+
   // Render first snapshot
   renderSnapshot(currentIndex);
   updateStatusHUD('READY');
@@ -355,6 +368,46 @@ function renderSnapshot(index) {
   // 7. Update step counter text
   if (stepCounterText) {
     stepCounterText.textContent = `Step ${index + 1} / ${snapshots.length}`;
+  }
+
+  // 9. Update Memory Profiler metrics
+  const mem = snapshot.memory || calculateMemory(snapshot, index > 0 ? snapshots[index - 1].memory : null);
+  
+  let cumulativeGCDrops = 0;
+  let cumulativePeak = 0;
+  const currentHistory = [];
+  for (let i = 0; i <= index; i++) {
+    const snapMem = snapshots[i].memory || { totalBytes: 0, gcOccurred: false };
+    if (snapMem.totalBytes > cumulativePeak) {
+      cumulativePeak = snapMem.totalBytes;
+    }
+    if (snapMem.gcOccurred) {
+      cumulativeGCDrops++;
+    }
+    currentHistory.push(snapMem);
+  }
+
+  const memoryTotalBytes = document.getElementById('memory-total-bytes');
+  const memoryPrimaryBytes = document.getElementById('memory-primary-bytes');
+  const memoryAuxBytes = document.getElementById('memory-aux-bytes');
+  const memoryStackBytes = document.getElementById('memory-stack-bytes');
+  const memoryVariablesBytes = document.getElementById('memory-variables-bytes');
+  const memoryGcDrops = document.getElementById('memory-gc-drops');
+  const memoryPeakBytes = document.getElementById('memory-peak-bytes');
+  const memoryFramesCount = document.getElementById('memory-frames-count');
+
+  if (memoryTotalBytes) memoryTotalBytes.textContent = mem.totalBytes;
+  if (memoryPrimaryBytes) memoryPrimaryBytes.textContent = mem.primaryArrayBytes + ' B';
+  if (memoryAuxBytes) memoryAuxBytes.textContent = mem.auxArrayBytes + ' B';
+  if (memoryStackBytes) memoryStackBytes.textContent = mem.stackFrameBytes + ' B';
+  if (memoryVariablesBytes) memoryVariablesBytes.textContent = mem.variablesBytes + ' B';
+  if (memoryGcDrops) memoryGcDrops.textContent = cumulativeGCDrops;
+  if (memoryPeakBytes) memoryPeakBytes.textContent = cumulativePeak + ' B';
+  if (memoryFramesCount) memoryFramesCount.textContent = mem.framesCount;
+
+  const pathElement = document.getElementById('memory-chart-path');
+  if (pathElement) {
+    updateMemoryChart(pathElement, currentHistory);
   }
 }
 
@@ -1239,6 +1292,13 @@ function bindEvents() {
   if (selectGraphStart) {
     selectGraphStart.addEventListener('change', () => {
       resetPlayroom(defaultArray);
+    });
+  }
+
+  // Toggle memory profiler drawer
+  if (btnMemoryToggle && memoryProfilerDrawer) {
+    btnMemoryToggle.addEventListener('click', () => {
+      memoryProfilerDrawer.classList.toggle('hidden');
     });
   }
 
