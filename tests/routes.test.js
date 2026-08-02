@@ -103,4 +103,12 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('Algorithm Playground - AlgoVisual');
     expect(res.text).toContain("initPlayer('aStar')");
   });
+
+  test('GET /room/:roomId should load visualizer room successfully', async () => {
+    const res = await request(app).get('/room/ABCDEF?algo=bubbleSort');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Algorithm Playground - AlgoVisual');
+    expect(res.text).toContain('window.ROOM_ID = "ABCDEF"');
+    expect(res.text).toContain("initPlayer('bubbleSort')");
+  });
 });

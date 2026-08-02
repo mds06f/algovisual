@@ -35,6 +35,18 @@
           <span>&gt;</span>
           <span id="breadcrumb-algo" class="text-[#00e1d9] font-bold">Algorithm</span>
         </div>
+        
+        <!-- Room Sync Controls -->
+        <div class="flex items-center gap-2 ml-3">
+          <button id="btn-create-room" class="tech-btn px-3 py-2 rounded text-xs flex items-center gap-1.5 font-technical font-bold uppercase" title="Create a shared room for remote synchronization">
+            🔗 Host Room
+          </button>
+          <div id="room-status-badge" class="hidden flex items-center gap-1.5 bg-[#090d16] border border-slate-900 px-3 py-2 rounded text-xs font-technical">
+            <span class="led-indicator led-active animate-pulse"></span>
+            <span class="text-slate-400">ROOM: <span id="text-room-id" class="text-white font-bold font-mono"></span></span>
+            <button id="btn-copy-invite" class="hover:text-[#00e1d9] text-slate-500 font-bold ml-1.5 font-sans" title="Copy Invite Link">📋</button>
+          </div>
+        </div>
       </div>
       <div class="text-right">
         <h2 class="text-[10px] text-slate-500 uppercase tracking-widest font-technical">Selected System Module</h2>
@@ -494,6 +506,13 @@
 
   <!-- Load Acorn AST Parser library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/8.12.1/acorn.min.js"></script>
+
+  <!-- Declare room variable and load socket.io client -->
+  <script>
+    window.ROOM_ID = "<%= typeof roomId !== 'undefined' ? roomId : '' %>";
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/socketPlayer.js"></script>
 
   <!-- Load player as ES6 module -->
   <script type="module">
