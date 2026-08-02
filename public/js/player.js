@@ -2,6 +2,7 @@
 import { drawGraph } from './graphRenderer.js';
 import { transpileCode } from './astTranspiler.js';
 import { calculateMemory, updateMemoryChart } from './memoryProfiler.js';
+import { drawTree } from './treeRenderer.js';
 
 
 let snapshots = [];
@@ -74,6 +75,8 @@ let selectGraphAlgo;
 let selectGraphStart;
 let memoryProfilerDrawer;
 let btnMemoryToggle;
+let containerTreeInputs;
+let selectTreeMode;
 
 export async function initPlayer(algoName) {
   try {
@@ -136,6 +139,8 @@ export async function initPlayer(algoName) {
     selectGraphStart = document.getElementById('select-graph-start');
     memoryProfilerDrawer = document.getElementById('memory-profiler-drawer');
     btnMemoryToggle = document.getElementById('btn-memory-toggle');
+    containerTreeInputs = document.getElementById('container-tree-inputs');
+    selectTreeMode = document.getElementById('select-tree-mode');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -270,6 +275,17 @@ function applyCategoryUI(category, algoName) {
     }
   }
 
+  if (containerTreeInputs) {
+    if (category === 'Tree') {
+      containerTreeInputs.classList.remove('hidden');
+      if (selectTreeMode) {
+        initialTarget = selectTreeMode.value || 'avl';
+      }
+    } else {
+      containerTreeInputs.classList.add('hidden');
+    }
+  }
+
   const containerRandomize = document.getElementById('container-randomize');
   if (containerRandomize) {
     if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures') {
@@ -316,12 +332,24 @@ function resetPlayroom(array, target) {
   currentIndex = 0;
 
   let finalTarget = target;
-  if (!finalTarget && currentAlgorithm && currentAlgorithm.category === 'Graph') {
-    if (selectGraphAlgo && selectGraphStart) {
-      finalTarget = {
-        algoType: selectGraphAlgo.value,
-        startNode: selectGraphStart.value
-      };
+  if (!finalTarget && currentAlgorithm) {
+    if (currentAlgorithm.category === 'Graph') {
+      if (selectGraphAlgo && selectGraphStart) {
+        finalTarget = {
+          algoType: selectGraphAlgo.value,
+          startNode: selectGraphStart.value
+        };
+      }
+    } else if (currentAlgorithm.category === 'Tree') {
+      if (selectTreeMode) {
+        finalTarget = selectTreeMode.value || 'avl';
+      }
+    }
+  }
+
+  if (currentAlgorithm && currentAlgorithm.category === 'Tree' && selectTreeMode) {
+    if (finalTarget === 'avl' || finalTarget === 'rbt') {
+      selectTreeMode.value = finalTarget;
     }
   }
 
@@ -444,6 +472,28 @@ function renderBars(
   scores = null,
 ) {
   barsContainer.innerHTML = '';
+
+  if (category === 'Tree') {
+    barsContainer.className = 'w-full h-full flex items-center justify-center relative';
+    
+    // Check if SVG already exists inside barsContainer
+    let svg = document.getElementById('tree-svg');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.id = 'tree-svg';
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.setAttribute('viewBox', '0 0 600 360');
+      svg.className = 'w-full h-full block';
+      barsContainer.appendChild(svg);
+    }
+    
+    const snapshot = snapshots[currentIndex];
+    if (snapshot && drawTree) {
+      drawTree(svg, snapshot.tree, snapshot.pointers);
+    }
+    return;
+  }
 
   if (category === 'Graph') {
     barsContainer.className = 'w-full h-full flex items-center justify-center relative';
@@ -1313,6 +1363,13 @@ function bindEvents() {
   // Change event on select-graph-start dropdown
   if (selectGraphStart) {
     selectGraphStart.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
+    });
+  }
+
+  // Change event on select-tree-mode dropdown
+  if (selectTreeMode) {
+    selectTreeMode.addEventListener('change', () => {
       resetPlayroom(defaultArray);
     });
   }
