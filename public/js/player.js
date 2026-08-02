@@ -184,6 +184,20 @@ export async function initPlayer(algoName) {
 
     // Load presets dropdown from localStorage
     loadPresetsDropdown();
+
+    window.visualizerPlayer = {
+      resetPlayroom,
+      renderSnapshot,
+      getCurrentIndex: () => currentIndex,
+      setCurrentIndex: (idx) => { currentIndex = idx; },
+      getSnapshots: () => snapshots,
+      getCurrentAlgorithm: () => currentAlgorithm,
+      getDefaultArray: () => defaultArray,
+      setDefaultArray: (arr) => { defaultArray = arr; },
+      isPlaying: () => isPlaying,
+      pauseAnimation,
+      startAnimation
+    };
   } catch (err) {
     console.error('Failed to initialize visualizer player:', err);
   }
@@ -325,6 +339,10 @@ function resetPlayroom(array, target) {
   // Render first snapshot
   renderSnapshot(currentIndex);
   updateStatusHUD('READY');
+
+  if (window.visualizerPlayer && typeof window.visualizerPlayer.onPlayroomReset === 'function') {
+    window.visualizerPlayer.onPlayroomReset(array, finalTarget);
+  }
 }
 
 function renderSnapshot(index) {
@@ -408,6 +426,10 @@ function renderSnapshot(index) {
   const pathElement = document.getElementById('memory-chart-path');
   if (pathElement) {
     updateMemoryChart(pathElement, currentHistory);
+  }
+
+  if (window.visualizerPlayer && typeof window.visualizerPlayer.onStepRendered === 'function') {
+    window.visualizerPlayer.onStepRendered(index);
   }
 }
 

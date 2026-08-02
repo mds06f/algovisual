@@ -39,9 +39,39 @@ app.get('/race', (req, res) => {
   res.render('race', { algo1, algo2, algo3, algo4 });
 });
 
+app.get('/room/:roomId', (req, res) => {
+  const { roomId } = req.params;
+  const algo = req.query.algo || 'bubbleSort';
+  res.render('visualizer', { algo, roomId });
+});
+
 // Avoid app.listen during Jest test runs
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
+  const http = require('http');
+  const socketIo = require('socket.io');
+  const server = http.createServer(app);
+  const io = socketIo(server);
+
+  io.on('connection', (socket) => {
+    socket.on('JOIN_ROOM', (roomId) => {
+      socket.join(roomId);
+      console.log(`Socket ${socket.id} joined room: ${roomId}`);
+    });
+
+    socket.on('PLAYBACK_STEP', ({ roomId, index, isPlaying }) => {
+      socket.to(roomId).emit('PLAYBACK_STEP', { index, isPlaying });
+    });
+
+    socket.on('ALGO_CHANGE', ({ roomId, algo }) => {
+      socket.to(roomId).emit('ALGO_CHANGE', { algo });
+    });
+
+    socket.on('ARRAY_UPDATE', ({ roomId, array, target }) => {
+      socket.to(roomId).emit('ARRAY_UPDATE', { array, target });
+    });
+  });
+
+  server.listen(port, () => {
     console.log(`AlgoVisual server running on http://localhost:${port}`);
   });
 }
