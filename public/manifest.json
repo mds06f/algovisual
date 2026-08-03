@@ -1,0 +1,18 @@
+{
+  "name": "AlgoVisual - Dynamic CS Visualizer",
+  "short_name": "AlgoVisual",
+  "description": "Dynamic algorithm animation playground and CS study engine.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#00e1d9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}
