@@ -3,6 +3,7 @@ import { drawGraph } from './graphRenderer.js';
 import { transpileCode } from './astTranspiler.js';
 import { calculateMemory, updateMemoryChart } from './memoryProfiler.js';
 import { drawTree } from './treeRenderer.js';
+import { writeToStore, readAllFromStore, deleteFromStore } from './idbStore.js';
 
 
 let snapshots = [];
@@ -77,7 +78,7 @@ let memoryProfilerDrawer;
 let btnMemoryToggle;
 let containerTreeInputs;
 let selectTreeMode;
-
+let selectOfflineSandbox;
 export async function initPlayer(algoName) {
   try {
     // Dynamically load the selected algorithm module
@@ -141,6 +142,7 @@ export async function initPlayer(algoName) {
     btnMemoryToggle = document.getElementById('btn-memory-toggle');
     containerTreeInputs = document.getElementById('container-tree-inputs');
     selectTreeMode = document.getElementById('select-tree-mode');
+    selectOfflineSandbox = document.getElementById('select-offline-sandbox');
 
     // Clear sandbox editor contents and return view to default state
     if (sandboxTextarea) sandboxTextarea.value = '';
@@ -189,6 +191,7 @@ export async function initPlayer(algoName) {
 
     // Load presets dropdown from localStorage
     loadPresetsDropdown();
+    loadOfflineSandboxDropdown();
 
     window.visualizerPlayer = {
       resetPlayroom,
@@ -884,6 +887,30 @@ function appendConsoleLog(text) {
 }
 
 // Playback operations
+function recordTelemetryToIDB() {
+  if (!currentAlgorithm) return;
+  const snapshot = snapshots[snapshots.length - 1];
+  if (!snapshot) return;
+
+  const comparisons = document.getElementById('stat-comparisons')?.textContent || '0';
+  const swaps = document.getElementById('stat-swaps')?.textContent || '0';
+
+  const telemetryData = {
+    timestamp: Date.now(),
+    algorithmName: currentAlgorithm.name,
+    category: currentAlgorithm.category,
+    stepsCount: snapshots.length,
+    comparisons: parseInt(comparisons, 10) || 0,
+    swaps: parseInt(swaps, 10) || 0
+  };
+
+  writeToStore('telemetry', telemetryData)
+    .then(() => {
+      appendConsoleLog(`[SYSTEM] Saved execution telemetry run offline in IndexedDB.`);
+    })
+    .catch(err => console.error('Failed to save telemetry to IndexedDB:', err));
+}
+
 function startAnimation() {
   if (isPlaying) return;
   isPlaying = true;
@@ -905,6 +932,7 @@ function startAnimation() {
     } else {
       pauseAnimation();
       updateStatusHUD('FINISHED');
+      recordTelemetryToIDB();
     }
   }, speedDelay);
 }
@@ -927,6 +955,7 @@ function stepNext() {
     renderSnapshot(currentIndex);
     if (currentIndex === snapshots.length - 1) {
       updateStatusHUD('FINISHED');
+      recordTelemetryToIDB();
     }
   } else if (isLooping) {
     currentIndex = 0;
@@ -1175,6 +1204,21 @@ function bindEvents() {
 
           appendConsoleLog(`[IMPORT] Successfully imported and registered algorithm: ${currentAlgorithm.name}`);
           alert(`Successfully imported and registered algorithm "${currentAlgorithm.name}"!`);
+
+          // Backup custom sandbox script in IndexedDB
+          writeToStore('sandbox', {
+            name: imported.name,
+            category: imported.category,
+            description: imported.description,
+            pseudocode: imported.pseudocode,
+            generatorCode: imported.generatorCode,
+            defaultArray: imported.defaultArray
+          })
+          .then(() => {
+            loadOfflineSandboxDropdown();
+            appendConsoleLog(`[SYSTEM] Saved custom algorithm "${imported.name}" offline in IndexedDB.`);
+          })
+          .catch(err => console.error('Failed to write custom script to IndexedDB:', err));
         } catch (err) {
           console.error("Import error:", err);
           alert("Failed to import algorithm package:\n" + err.message);
@@ -1371,6 +1415,66 @@ function bindEvents() {
   if (selectTreeMode) {
     selectTreeMode.addEventListener('change', () => {
       resetPlayroom(defaultArray);
+    });
+  }
+
+  // Change event on select-offline-sandbox dropdown
+  if (selectOfflineSandbox) {
+    selectOfflineSandbox.addEventListener('change', async () => {
+      const selectedName = selectOfflineSandbox.value;
+      if (!selectedName) return;
+      try {
+        const list = await readAllFromStore('sandbox');
+        const selected = list.find(item => item.name === selectedName);
+        if (!selected) return;
+
+        // Compile generatorCode
+        let parsedGenerator = new Function('return (' + selected.generatorCode + ')')();
+        if (typeof parsedGenerator !== 'function') {
+          throw new Error("Compiled code is not a function.");
+        }
+
+        // Dynamic registration:
+        currentAlgorithm = {
+          name: selected.name,
+          category: selected.category,
+          description: selected.description,
+          pseudocode: selected.pseudocode,
+          generator: parsedGenerator
+        };
+
+        // Update Document and DOM
+        document.title = `${currentAlgorithm.name} - AlgoVisual`;
+        const algoTitleElem = document.getElementById('algo-title');
+        if (algoTitleElem) algoTitleElem.textContent = currentAlgorithm.name;
+        const algoDescElem = document.getElementById('algo-desc');
+        if (algoDescElem) algoDescElem.textContent = currentAlgorithm.description;
+
+        const breadcrumbCategory = document.getElementById('breadcrumb-category');
+        const breadcrumbAlgo = document.getElementById('breadcrumb-algo');
+        if (breadcrumbCategory) breadcrumbCategory.textContent = currentAlgorithm.category || 'Algorithms';
+        if (breadcrumbAlgo) breadcrumbAlgo.textContent = currentAlgorithm.name;
+
+        // Render updated pseudocode
+        renderPseudocode(currentAlgorithm.pseudocode);
+
+        // Update sandbox editor code
+        if (sandboxTextarea) {
+          sandboxTextarea.value = selected.generatorCode;
+          syncHighlight();
+        }
+
+        // Apply default array
+        if (Array.isArray(selected.defaultArray)) {
+          defaultArray = selected.defaultArray;
+        }
+
+        // Reset visualizer view
+        resetPlayroom(defaultArray);
+        appendConsoleLog(`[SYSTEM] Loaded offline algorithm: ${currentAlgorithm.name}`);
+      } catch (err) {
+        alert('Failed to load offline algorithm: ' + err.message);
+      }
     });
   }
 
@@ -2021,7 +2125,7 @@ function bindEvents() {
   }
 }
 
-export function loadPresetsDropdown() {
+export async function loadPresetsDropdown() {
   const selectPreset = document.getElementById('select-preset');
   if (!selectPreset) return;
   selectPreset.innerHTML = `
@@ -2037,6 +2141,38 @@ export function loadPresetsDropdown() {
     opt.textContent = preset.name;
     selectPreset.appendChild(opt);
   });
+
+  try {
+    const idbPresets = await readAllFromStore('presets');
+    idbPresets.forEach((preset) => {
+      const exists = storedPresets.some(p => p.name === preset.name);
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = preset.array;
+        opt.textContent = `${preset.name} (Offline)`;
+        selectPreset.appendChild(opt);
+      }
+    });
+  } catch (err) {
+    console.warn('Could not read presets from IndexedDB:', err);
+  }
+}
+
+export async function loadOfflineSandboxDropdown() {
+  const selectOffline = document.getElementById('select-offline-sandbox');
+  if (!selectOffline) return;
+  selectOffline.innerHTML = '<option value="">-- Offline Saves --</option>';
+  try {
+    const list = await readAllFromStore('sandbox');
+    list.forEach((item) => {
+      const opt = document.createElement('option');
+      opt.value = item.name;
+      opt.textContent = item.name;
+      selectOffline.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load sandbox items from IndexedDB:', err);
+  }
 }
 
 function playToneForValue(value, isSwap = false) {

@@ -6,6 +6,7 @@
   <title>Algorithm Playground - AlgoVisual</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
   <script>
     if (localStorage.getItem('theme') === 'light') {
       document.documentElement.classList.add('light-theme');
@@ -431,6 +432,9 @@
                 📥 Import Package
               </button>
               <input type="file" id="input-import-algo" class="hidden" accept=".algovisual">
+              <select id="select-offline-sandbox" class="tech-input text-[9px] bg-slate-950 border border-slate-900 rounded px-1.5 py-1 font-technical focus:outline-none max-w-[100px]" title="Load Offline Saved Algorithm">
+                <option value="">-- Offline Saves --</option>
+              </select>
               <button id="btn-toggle-sandbox" class="tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold uppercase" title="Toggle Sandbox Code Editor">
                 Sandbox Mode
               </button>
@@ -551,6 +555,15 @@
           const isLight = document.documentElement.classList.toggle('light-theme');
           localStorage.setItem('theme', isLight ? 'light' : 'dark');
           updateToggleIcon();
+        });
+      }
+
+      // PWA Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registered with scope: ', reg.scope))
+            .catch(err => console.error('ServiceWorker registration failed: ', err));
         });
       }
     });

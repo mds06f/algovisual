@@ -6,6 +6,7 @@
   <title>AlgoVisual - Algorithm Telemetry Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
   <script>
     if (localStorage.getItem('theme') === 'light') {
       document.documentElement.classList.add('light-theme');
@@ -503,6 +504,15 @@
           filterCards();
         });
       });
+
+      // PWA Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registered with scope: ', reg.scope))
+            .catch(err => console.error('ServiceWorker registration failed: ', err));
+        });
+      }
     });
   </script>
 </body>
