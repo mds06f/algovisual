@@ -1180,6 +1180,28 @@ function bindEvents() {
     });
   }
 
+  const btnDsPushFront = document.getElementById('btn-ds-push-front');
+  const btnDsPopFront = document.getElementById('btn-ds-pop-front');
+
+  if (btnDsPushFront) {
+    btnDsPushFront.addEventListener('click', () => {
+      const val = parseInt(inputDsVal ? inputDsVal.value : '42', 10) || 42;
+      defaultArray.unshift(val);
+      resetPlayroom([...defaultArray]);
+      appendConsoleLog(`[DEQUE] PUSH FRONT element ${val}. Array length: ${defaultArray.length}`);
+    });
+  }
+
+  if (btnDsPopFront) {
+    btnDsPopFront.addEventListener('click', () => {
+      if (defaultArray.length > 0) {
+        const val = defaultArray.shift();
+        resetPlayroom([...defaultArray]);
+        appendConsoleLog(`[DEQUE] POP FRONT element ${val}. Array length: ${defaultArray.length}`);
+      }
+    });
+  }
+
   const btnCopyCode = document.getElementById('btn-copy-code');
   if (btnCopyCode) {
     btnCopyCode.addEventListener('click', () => {
