@@ -11,6 +11,7 @@ let currentIndex = 0;
 let isPlaying = false;
 let isLooping = false;
 let playbackDirection = 'forward';
+let showBarLabels = true;
 let playbackInterval = null;
 let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
@@ -32,6 +33,7 @@ let btnLoop;
 let btnDirectionToggle;
 let directionToggleIcon;
 let btnTtsRead;
+let toggleBarLabels;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -101,6 +103,7 @@ export async function initPlayer(algoName) {
     btnDirectionToggle = document.getElementById('btn-direction-toggle');
     directionToggleIcon = document.getElementById('direction-toggle-icon');
     btnTtsRead = document.getElementById('btn-tts-read');
+    toggleBarLabels = document.getElementById('toggle-bar-labels');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -539,7 +542,7 @@ function renderBars(
           ? 'border-cyan-400 bg-cyan-950/60 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)] scale-105'
           : 'border-slate-800 bg-slate-950/60 text-slate-200'
       }`;
-      cell.textContent = val;
+      cell.textContent = showBarLabels ? val : '';
       barsContainer.appendChild(cell);
     });
     return;
@@ -649,7 +652,7 @@ function renderBars(
 
       cell.innerHTML = `
         ${badgesHtml}
-        <span>${value}</span>
+        <span>${showBarLabels ? value : ''}</span>
         <span class="text-[9px] text-slate-500 absolute bottom-1 right-1 font-mono font-light select-none">${index}</span>
       `;
       barsContainer.appendChild(cell);
@@ -687,7 +690,7 @@ function renderBars(
       col.innerHTML = `
         ${pointerHtml}
         <div class="${tubeClass}" style="height:${heightPercent}%"></div>
-        <span class="text-slate-400 font-technical text-xs mt-2 select-none font-semibold font-mono">${value}</span>
+        <span class="text-slate-400 font-technical text-xs mt-2 select-none font-semibold font-mono ${showBarLabels ? '' : 'hidden'}">${value}</span>
       `;
       mainRow.appendChild(col);
     });
@@ -1053,6 +1056,14 @@ function bindEvents() {
       } else {
         alert('Text-to-Speech is not supported in this browser.');
       }
+    });
+  }
+
+  if (toggleBarLabels) {
+    toggleBarLabels.addEventListener('change', (e) => {
+      showBarLabels = e.target.checked;
+      renderSnapshot(currentIndex);
+      appendConsoleLog(`[SETTINGS] Numeric value labels on bars ${showBarLabels ? 'ENABLED' : 'DISABLED'}`);
     });
   }
 
