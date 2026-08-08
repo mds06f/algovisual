@@ -10,6 +10,7 @@ let snapshots = [];
 let currentIndex = 0;
 let isPlaying = false;
 let isLooping = false;
+let playbackDirection = 'forward';
 let playbackInterval = null;
 let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
@@ -28,6 +29,8 @@ let btnUndo;
 let prevBtn;
 let nextBtn;
 let btnLoop;
+let btnDirectionToggle;
+let directionToggleIcon;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -94,6 +97,8 @@ export async function initPlayer(algoName) {
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
     btnLoop = document.getElementById('btn-loop');
+    btnDirectionToggle = document.getElementById('btn-direction-toggle');
+    directionToggleIcon = document.getElementById('direction-toggle-icon');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -918,21 +923,40 @@ function startAnimation() {
   updateStatusHUD('RUNNING');
 
   playbackInterval = setInterval(() => {
-    if (currentIndex < snapshots.length - 1) {
-      currentIndex++;
-      renderSnapshot(currentIndex);
-      const curLine = snapshots[currentIndex]?.executingLine;
-      if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+    if (playbackDirection === 'forward') {
+      if (currentIndex < snapshots.length - 1) {
+        currentIndex++;
+        renderSnapshot(currentIndex);
+        const curLine = snapshots[currentIndex]?.executingLine;
+        if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+          pauseAnimation();
+          appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        }
+      } else if (isLooping) {
+        currentIndex = 0;
+        renderSnapshot(currentIndex);
+      } else {
         pauseAnimation();
-        appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        updateStatusHUD('FINISHED');
+        recordTelemetryToIDB();
       }
-    } else if (isLooping) {
-      currentIndex = 0;
-      renderSnapshot(currentIndex);
     } else {
-      pauseAnimation();
-      updateStatusHUD('FINISHED');
-      recordTelemetryToIDB();
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSnapshot(currentIndex);
+        const curLine = snapshots[currentIndex]?.executingLine;
+        if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+          pauseAnimation();
+          appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        }
+      } else if (isLooping) {
+        currentIndex = snapshots.length - 1;
+        renderSnapshot(currentIndex);
+      } else {
+        pauseAnimation();
+        updateStatusHUD('FINISHED');
+        recordTelemetryToIDB();
+      }
     }
   }, speedDelay);
 }
@@ -1000,6 +1024,17 @@ function bindEvents() {
       isLooping = !isLooping;
       btnLoop.classList.toggle('tech-btn-primary', isLooping);
       appendConsoleLog(`[PLAYBACK] Auto-loop mode ${isLooping ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
+
+  if (btnDirectionToggle) {
+    btnDirectionToggle.addEventListener('click', () => {
+      playbackDirection = playbackDirection === 'forward' ? 'backward' : 'forward';
+      if (directionToggleIcon) {
+        directionToggleIcon.textContent = playbackDirection === 'forward' ? '➡️' : '⬅️';
+      }
+      btnDirectionToggle.classList.toggle('tech-btn-primary', playbackDirection === 'backward');
+      appendConsoleLog(`[PLAYBACK] Auto-play direction changed to ${playbackDirection.toUpperCase()}`);
     });
   }
 
