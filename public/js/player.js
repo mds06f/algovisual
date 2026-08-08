@@ -45,6 +45,9 @@ let btnSavePreset;
 let btnCopyPreset;
 let btnReset;
 let btnDeletePreset;
+let btnExportSession;
+let btnImportSession;
+let inputSessionFile;
 let btnToggleSandbox;
 let btnRunSandbox;
 let sandboxContainer;
@@ -116,6 +119,9 @@ export async function initPlayer(algoName) {
     btnCopyPreset = document.getElementById('btn-copy-preset');
     btnReset = document.getElementById('btn-reset');
     btnDeletePreset = document.getElementById('btn-delete-preset');
+    btnExportSession = document.getElementById('btn-export-session');
+    btnImportSession = document.getElementById('btn-import-session');
+    inputSessionFile = document.getElementById('input-session-file');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
     btnRunSandbox = document.getElementById('btn-run-sandbox');
     btnExportAlgo = document.getElementById('btn-export-algo');
@@ -1345,6 +1351,97 @@ function bindEvents() {
         } catch (err) {
           console.error("Import error:", err);
           alert("Failed to import algorithm package:\n" + err.message);
+        }
+      };
+
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+  }
+
+  // ── Session Replay Export/Import Listeners ─────────────────────────────────
+  if (btnExportSession) {
+    btnExportSession.addEventListener('click', () => {
+      if (!snapshots || snapshots.length === 0) {
+        alert('No active playback session snapshots to export.');
+        return;
+      }
+
+      const sessionReplayData = {
+        exportedAt: Date.now(),
+        algorithmName: currentAlgorithm ? currentAlgorithm.name : 'Unknown',
+        category: currentAlgorithm ? currentAlgorithm.category : 'General',
+        snapshots: snapshots,
+        defaultArray: defaultArray
+      };
+
+      const jsonStr = JSON.stringify(sessionReplayData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const filePrefix = currentAlgorithm ? currentAlgorithm.name.toLowerCase().replace(/[^a-z0-9]+/g, '_') : 'visualizer';
+      a.download = `${filePrefix}_session_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      appendConsoleLog(`[SYSTEM] Exported session replay for ${sessionReplayData.algorithmName} with ${snapshots.length} frames.`);
+    });
+  }
+
+  if (btnImportSession && inputSessionFile) {
+    btnImportSession.addEventListener('click', () => {
+      inputSessionFile.click();
+    });
+
+    inputSessionFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          if (!imported.snapshots || !Array.isArray(imported.snapshots)) {
+            throw new Error("Invalid session replay format: missing 'snapshots' array.");
+          }
+
+          // Stop active play animation
+          pauseAnimation();
+
+          // Populate the snapshots & basic settings
+          snapshots = imported.snapshots;
+          currentIndex = 0;
+          if (Array.isArray(imported.defaultArray)) {
+            defaultArray = imported.defaultArray;
+          }
+
+          // Register dummy algorithm settings if matching headers are found
+          if (imported.algorithmName) {
+            currentAlgorithm = {
+              name: imported.algorithmName,
+              category: imported.category || 'General',
+              description: `Imported Playback Replay Session containing ${snapshots.length} execution frames.`,
+              pseudocode: []
+            };
+            document.title = `${currentAlgorithm.name} (Replay) - AlgoVisual`;
+            const algoTitleElem = document.getElementById('algo-title');
+            if (algoTitleElem) algoTitleElem.textContent = `${currentAlgorithm.name} (Replay Mode)`;
+            const algoDescElem = document.getElementById('algo-desc');
+            if (algoDescElem) algoDescElem.textContent = currentAlgorithm.description;
+          }
+
+          // Initialize view
+          renderSnapshot(currentIndex);
+          updateStatusHUD('READY');
+
+          appendConsoleLog(`[SYSTEM] Successfully imported and loaded session replay with ${snapshots.length} snapshots.`);
+          alert(`Successfully imported and loaded session replay with ${snapshots.length} frames!`);
+        } catch (err) {
+          console.error("Session import error:", err);
+          alert("Failed to import session replay:\n" + err.message);
         }
       };
 
