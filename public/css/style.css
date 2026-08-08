@@ -1058,3 +1058,31 @@ select.tech-input option {
 .code-line-item:hover .code-tooltip-overlay {
   opacity: 1;
 }
+
+/* --- Sandbox Syntax Themes --- */
+#sandbox-editor-wrap.theme-dracula .sandbox-highlight {
+  background: #282a36 !important;
+}
+#sandbox-editor-wrap.theme-dracula .sh-keyword { color: #ff79c6 !important; }
+#sandbox-editor-wrap.theme-dracula .sh-number { color: #bd93f9 !important; }
+#sandbox-editor-wrap.theme-dracula .sh-string { color: #50fa7b !important; }
+#sandbox-editor-wrap.theme-dracula .sh-comment { color: #6272a4 !important; }
+#sandbox-editor-wrap.theme-dracula .sh-yield { color: #8be9fd !important; }
+
+#sandbox-editor-wrap.theme-monokai .sandbox-highlight {
+  background: #272822 !important;
+}
+#sandbox-editor-wrap.theme-monokai .sh-keyword { color: #f92672 !important; }
+#sandbox-editor-wrap.theme-monokai .sh-number { color: #ae81ff !important; }
+#sandbox-editor-wrap.theme-monokai .sh-string { color: #a6e22e !important; }
+#sandbox-editor-wrap.theme-monokai .sh-comment { color: #75715e !important; }
+#sandbox-editor-wrap.theme-monokai .sh-yield { color: #66d9ef !important; }
+
+#sandbox-editor-wrap.theme-light .sandbox-highlight {
+  background: #fdf6e3 !important;
+}
+#sandbox-editor-wrap.theme-light .sh-keyword { color: #d33682 !important; }
+#sandbox-editor-wrap.theme-light .sh-number { color: #cb4b16 !important; }
+#sandbox-editor-wrap.theme-light .sh-string { color: #859900 !important; }
+#sandbox-editor-wrap.theme-light .sh-comment { color: #93a1a1 !important; }
+#sandbox-editor-wrap.theme-light .sh-yield { color: #268bd2 !important; }
