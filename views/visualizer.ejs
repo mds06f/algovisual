@@ -344,10 +344,14 @@
           <!-- Tree Option Controls (shown only for Tree algorithms) -->
           <div id="container-tree-inputs" class="hidden flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
-              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Balancing Mode</span>
+              <span id="tree-mode-label" class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">Balancing Mode</span>
               <select id="select-tree-mode" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
                 <option value="avl" selected>AVL Tree</option>
                 <option value="rbt">Red-Black Tree</option>
+                <option value="preorder" class="traversal-opt hidden">Preorder (NLR)</option>
+                <option value="inorder" class="traversal-opt hidden">Inorder (LNR)</option>
+                <option value="postorder" class="traversal-opt hidden">Postorder (LRN)</option>
+                <option value="all" class="traversal-opt hidden">All Three Traversals</option>
               </select>
             </div>
           </div>

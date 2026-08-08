@@ -322,8 +322,29 @@ function applyCategoryUI(category, algoName) {
   if (containerTreeInputs) {
     if (category === 'Tree') {
       containerTreeInputs.classList.remove('hidden');
-      if (selectTreeMode) {
-        initialTarget = selectTreeMode.value || 'avl';
+      const treeModeLabel = document.getElementById('tree-mode-label');
+      const balancingOpts = selectTreeMode ? Array.from(selectTreeMode.options).filter(o => ['avl','rbt'].includes(o.value)) : [];
+      const traversalOpts = selectTreeMode ? Array.from(selectTreeMode.querySelectorAll('.traversal-opt')) : [];
+
+      if (algoName === 'treeTraversals') {
+        // Show traversal options, hide balancing options
+        balancingOpts.forEach(o => { o.hidden = true; o.disabled = true; });
+        traversalOpts.forEach(o => { o.hidden = false; o.disabled = false; o.classList.remove('hidden'); });
+        if (treeModeLabel) treeModeLabel.textContent = 'Traversal Mode';
+        if (selectTreeMode) {
+          // Default to 'all' if current value is a balancing mode
+          if (['avl','rbt'].includes(selectTreeMode.value)) selectTreeMode.value = 'all';
+          initialTarget = selectTreeMode.value;
+        }
+      } else {
+        // Show balancing options, hide traversal options
+        balancingOpts.forEach(o => { o.hidden = false; o.disabled = false; });
+        traversalOpts.forEach(o => { o.hidden = true; o.disabled = true; o.classList.add('hidden'); });
+        if (treeModeLabel) treeModeLabel.textContent = 'Balancing Mode';
+        if (selectTreeMode) {
+          if (['preorder','inorder','postorder','all'].includes(selectTreeMode.value)) selectTreeMode.value = 'avl';
+          initialTarget = selectTreeMode.value || 'avl';
+        }
       }
     } else {
       containerTreeInputs.classList.add('hidden');
