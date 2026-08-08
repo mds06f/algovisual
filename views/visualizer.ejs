@@ -355,6 +355,16 @@
               </select>
             </div>
           </div>
+          <!-- DP Option Controls (shown only for DP algorithms) -->
+          <div id="container-dp-inputs" class="hidden flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div class="flex items-center bg-[#090d16] border border-slate-900 rounded p-1 gap-1 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_10px_rgba(6,182,212,0.15)] transition duration-200">
+              <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-technical pl-2">DP Mode</span>
+              <select id="select-dp-mode" class="tech-input text-xs bg-[#090d16] border-none outline-none text-slate-200 px-2 py-1.5 font-technical focus:outline-none focus:ring-0">
+                <option value="lcs" selected>Longest Common Subsequence</option>
+                <option value="edit">Edit Distance (Levenshtein)</option>
+              </select>
+            </div>
+          </div>
 
           <!-- Random Array Generator -->
           <div id="container-randomize" class="flex items-center gap-2 w-full sm:w-auto flex-wrap">

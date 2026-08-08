@@ -259,7 +259,7 @@ function applyCategoryUI(category, algoName) {
   let initialTarget = undefined;
 
   if (customInputsContainer) {
-    if (category === 'Pathfinding' || category === 'Graph') {
+    if (category === 'Pathfinding' || category === 'Graph' || category === 'DP') {
       customInputsContainer.classList.add('hidden');
     } else {
       customInputsContainer.classList.remove('hidden');
@@ -353,10 +353,22 @@ function applyCategoryUI(category, algoName) {
 
   const containerRandomize = document.getElementById('container-randomize');
   if (containerRandomize) {
-    if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures') {
+    if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures' || category === 'DP') {
       containerRandomize.classList.add('hidden');
     } else {
       containerRandomize.classList.remove('hidden');
+    }
+  }
+
+  // DP mode selector
+  const containerDpInputs = document.getElementById('container-dp-inputs');
+  if (containerDpInputs) {
+    if (category === 'DP') {
+      containerDpInputs.classList.remove('hidden');
+      const selectDpMode = document.getElementById('select-dp-mode');
+      initialTarget = selectDpMode ? selectDpMode.value || 'lcs' : 'lcs';
+    } else {
+      containerDpInputs.classList.add('hidden');
     }
   }
 
@@ -544,7 +556,122 @@ function renderSnapshot(index) {
   }
 }
 
+function renderDPTable(snap) {
+  const { dpTable, dpStrings, dpHighlight, dpBacktrack = [], dpMode, dpPhase } = snap;
+  const { s1, s2 } = dpStrings;
+  const m = s1.length;
+  const n = s2.length;
+  const backtrackSet = new Set(dpBacktrack.map(([r, c]) => `${r},${c}`));
+
+  // Phase banner
+  const phaseLabel = dpPhase === 'backtrack' ? 'BACKTRACKING' : dpPhase === 'done' ? 'COMPLETE' : 'FILLING TABLE';
+  const phaseBg = dpPhase === 'backtrack' ? 'bg-cyan-900/40 border-cyan-500/40 text-cyan-300' : dpPhase === 'done' ? 'bg-emerald-900/40 border-emerald-500/40 text-emerald-300' : 'bg-amber-900/30 border-amber-500/30 text-amber-300';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col items-center gap-3 w-full';
+
+  // Phase pill
+  const pill = document.createElement('div');
+  pill.className = `text-[9px] font-bold font-technical uppercase tracking-widest px-3 py-1 rounded-full border ${phaseBg}`;
+  pill.textContent = `${dpMode === 'lcs' ? 'LCS' : 'Edit Distance'} · ${phaseLabel}`;
+  wrapper.appendChild(pill);
+
+  // String labels
+  const strLabel = document.createElement('div');
+  strLabel.className = 'text-[10px] font-technical text-slate-400';
+  strLabel.innerHTML = `<span class="text-cyan-400 font-bold">S1</span>: "${s1}" &nbsp;|&nbsp; <span class="text-amber-400 font-bold">S2</span>: "${s2}"`;
+  wrapper.appendChild(strLabel);
+
+  // Table
+  const tableEl = document.createElement('table');
+  tableEl.className = 'dp-table border-collapse text-[10px] font-technical';
+  tableEl.style.borderSpacing = '0';
+
+  const cellSize = Math.min(36, Math.floor(Math.min(window.innerWidth * 0.6, 600) / (n + 3)));
+
+  const makeCell = (content, cls = '') => {
+    const td = document.createElement('td');
+    td.className = cls;
+    td.style.width = `${cellSize}px`;
+    td.style.height = `${cellSize}px`;
+    td.style.textAlign = 'center';
+    td.style.verticalAlign = 'middle';
+    td.style.border = '1px solid rgba(51,65,85,0.6)';
+    td.style.transition = 'background 0.2s, color 0.2s';
+    td.innerHTML = content;
+    return td;
+  };
+
+  // Header row: '' | '' | s2 chars
+  const headRow = document.createElement('tr');
+  headRow.appendChild(makeCell('', 'text-slate-700'));
+  headRow.appendChild(makeCell('', 'text-slate-700'));
+  headRow.appendChild(makeCell('ε', 'text-slate-500 font-bold'));
+  for (let j = 0; j < n; j++) {
+    const th = makeCell(`<span style="color:#f59e0b;font-weight:bold">${s2[j]}</span>`);
+    headRow.appendChild(th);
+  }
+  tableEl.appendChild(headRow);
+
+  // Data rows
+  for (let i = 0; i <= m; i++) {
+    const tr = document.createElement('tr');
+
+    // Row s1 char label
+    const rowChar = i === 0 ? 'ε' : `<span style="color:#22d3ee;font-weight:bold">${s1[i-1]}</span>`;
+    const rowIdx = makeCell(i === 0 ? '' : `${i}`, 'text-slate-600 text-[9px]');
+    tr.appendChild(rowIdx);
+    tr.appendChild(makeCell(rowChar, 'font-bold'));
+
+    for (let j = 0; j <= n; j++) {
+      const isActive   = dpHighlight && dpHighlight.i === i && dpHighlight.j === j;
+      const isBacktrack = backtrackSet.has(`${i},${j}`);
+      const isBase     = i === 0 || j === 0;
+      const val = dpTable[i] && dpTable[i][j] !== undefined ? dpTable[i][j] : '';
+
+      const td = makeCell(val !== '' ? `${val}` : '');
+
+      if (isActive && dpPhase !== 'done') {
+        td.style.background = 'rgba(245,158,11,0.35)';
+        td.style.color = '#fbbf24';
+        td.style.fontWeight = 'bold';
+        td.style.boxShadow = '0 0 0 2px #f59e0b inset, 0 0 12px rgba(245,158,11,0.4)';
+      } else if (isBacktrack) {
+        td.style.background = 'rgba(6,182,212,0.2)';
+        td.style.color = '#22d3ee';
+        td.style.fontWeight = 'bold';
+        td.style.boxShadow = '0 0 0 1.5px rgba(6,182,212,0.5) inset';
+      } else if (isBase) {
+        td.style.background = 'rgba(30,41,59,0.5)';
+        td.style.color = '#64748b';
+      } else if (val !== '') {
+        td.style.background = 'rgba(15,23,42,0.6)';
+        td.style.color = '#94a3b8';
+      } else {
+        td.style.background = 'rgba(9,13,22,0.4)';
+        td.style.color = '#1e293b';
+      }
+
+      tr.appendChild(td);
+    }
+    tableEl.appendChild(tr);
+  }
+
+  wrapper.appendChild(tableEl);
+
+  // Result footer
+  if (dpPhase === 'done') {
+    const footer = document.createElement('div');
+    footer.className = 'text-xs font-technical font-bold text-emerald-400 mt-1 px-4 py-2 bg-emerald-900/20 border border-emerald-500/30 rounded';
+    footer.textContent = snap.description;
+    wrapper.appendChild(footer);
+  }
+
+  barsContainer.appendChild(wrapper);
+}
+
 function renderBars(
+
   arr,
   highlights,
   pointers,
@@ -556,7 +683,16 @@ function renderBars(
 ) {
   barsContainer.innerHTML = '';
 
+  if (category === 'DP') {
+    barsContainer.className = 'w-full h-full overflow-auto p-3 flex flex-col items-center justify-start';
+    const snap = snapshots[currentIndex];
+    if (!snap || !snap.dpTable) return;
+    renderDPTable(snap);
+    return;
+  }
+
   if (category === 'Tree') {
+
     barsContainer.className = 'w-full h-full flex items-center justify-center relative';
     
     // Check if SVG already exists inside barsContainer
@@ -1823,6 +1959,14 @@ function bindEvents() {
   // Change event on select-tree-mode dropdown
   if (selectTreeMode) {
     selectTreeMode.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
+    });
+  }
+
+  // Change event on select-dp-mode dropdown
+  const selectDpMode = document.getElementById('select-dp-mode');
+  if (selectDpMode) {
+    selectDpMode.addEventListener('change', () => {
       resetPlayroom(defaultArray);
     });
   }
