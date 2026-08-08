@@ -36,6 +36,8 @@ let btnTtsRead;
 let toggleBarLabels;
 let selectEditorTheme;
 let speedSlider;
+let sliderTimeline;
+let textTimelineVal;
 let speedValueText;
 let customInput;
 let btnApplyInput;
@@ -112,6 +114,8 @@ export async function initPlayer(algoName) {
     toggleBarLabels = document.getElementById('toggle-bar-labels');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
+    sliderTimeline = document.getElementById('slider-timeline');
+    textTimelineVal = document.getElementById('text-timeline-val');
     customInput = document.getElementById('input-custom');
     btnApplyInput = document.getElementById('btn-apply-input');
     narrativeText = document.getElementById('narrative-text');
@@ -398,6 +402,15 @@ function resetPlayroom(array, target) {
   // Generate snapshots
   snapshots = currentAlgorithm.generator(array, finalTarget);
 
+  if (sliderTimeline) {
+    sliderTimeline.min = 0;
+    sliderTimeline.max = snapshots.length > 0 ? snapshots.length - 1 : 0;
+    sliderTimeline.value = 0;
+  }
+  if (textTimelineVal) {
+    textTimelineVal.textContent = `Step 1/${snapshots.length || 1}`;
+  }
+
   // Pre-calculate memory states for the active session snapshots
   let prevMem = null;
   snapshots.forEach((snap) => {
@@ -418,6 +431,13 @@ function resetPlayroom(array, target) {
 function renderSnapshot(index) {
   if (snapshots.length === 0 || index < 0 || index >= snapshots.length) return;
   const snapshot = snapshots[index];
+
+  if (sliderTimeline) {
+    sliderTimeline.value = index;
+  }
+  if (textTimelineVal) {
+    textTimelineVal.textContent = `Step ${index + 1}/${snapshots.length}`;
+  }
 
   // 1. Render data bars (with algorithm category context)
   renderBars(
@@ -1565,6 +1585,18 @@ function bindEvents() {
       btn.classList.toggle('speed-preset-active', btnRate === rate);
     });
   });
+
+  // Timeline scrubbing slider
+  if (sliderTimeline) {
+    sliderTimeline.addEventListener('input', (e) => {
+      pauseAnimation();
+      const val = parseInt(e.target.value, 10);
+      if (val >= 0 && val < snapshots.length) {
+        currentIndex = val;
+        renderSnapshot(currentIndex);
+      }
+    });
+  }
 
   // Speed preset buttons
   document.querySelectorAll('.speed-preset-btn').forEach((btn) => {

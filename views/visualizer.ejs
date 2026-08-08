@@ -82,34 +82,60 @@
         </div>
 
         <!-- Controls Card -->
-        <div class="cyber-panel p-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <!-- Playback Buttons -->
-          <div class="flex items-center gap-3">
-            <button id="btn-undo" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Undo / Deep Backtrack Action">
-              <span>↩️</span> Undo
-            </button>
-            <button id="btn-prev" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Backward">
-              <span>⏮</span> Step Back
-            </button>
-            <button id="btn-play" class="tech-btn tech-btn-primary px-6 py-3 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-              <span>▶</span> Play
-            </button>
-            <button id="btn-next" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Forward">
-              <span>⏭</span> Step Next
-            </button>
-            <button id="btn-loop" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Auto-Loop Mode">
-              <span>🔁</span> Loop
-            </button>
-            <button id="btn-direction-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Playback Direction (Forward/Reverse)">
-              <span id="direction-toggle-icon">➡️</span> Dir
-            </button>
-            <button id="btn-audio-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Sound (Sonification)">
-              <span id="audio-toggle-icon">🔇</span>
-            </button>
-            <button id="btn-audio-settings" class="tech-btn p-3 rounded text-xs" title="Sound Settings (Waveform & Pitch)">⚙</button>
-            <button id="btn-memory-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-1.5" title="Toggle Memory Profiler Drawer">📊 Profiler</button>
-            <span id="step-counter-text" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-3 rounded select-none min-w-[95px] text-center">Step 0 / 0</span>
+        <div class="cyber-panel p-6 flex flex-col gap-4">
+          <div class="flex flex-col lg:flex-row gap-4 items-center justify-between w-full">
+            <!-- Playback Buttons -->
+            <div class="flex items-center gap-3">
+              <button id="btn-undo" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Undo / Deep Backtrack Action">
+                <span>↩️</span> Undo
+              </button>
+              <button id="btn-prev" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Backward">
+                <span>⏮</span> Step Back
+              </button>
+              <button id="btn-play" class="tech-btn tech-btn-primary px-6 py-3 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                <span>▶</span> Play
+              </button>
+              <button id="btn-next" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Step Forward">
+                <span>⏭</span> Step Next
+              </button>
+              <button id="btn-loop" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Auto-Loop Mode">
+                <span>🔁</span> Loop
+              </button>
+              <button id="btn-direction-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Playback Direction (Forward/Reverse)">
+                <span id="direction-toggle-icon">➡️</span> Dir
+              </button>
+              <button id="btn-audio-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-2" title="Toggle Sound (Sonification)">
+                <span id="audio-toggle-icon">🔇</span>
+              </button>
+              <button id="btn-audio-settings" class="tech-btn p-3 rounded text-xs" title="Sound Settings (Waveform & Pitch)">⚙</button>
+              <button id="btn-memory-toggle" class="tech-btn p-3 rounded text-xs flex items-center gap-1.5" title="Toggle Memory Profiler Drawer">📊 Profiler</button>
+              <span id="step-counter-text" class="text-xs text-slate-400 font-technical font-bold border border-slate-900 bg-slate-950 px-3 py-3 rounded select-none min-w-[95px] text-center">Step 0 / 0</span>
+            </div>
+
+            <!-- Speed Slider + Presets -->
+            <div class="flex flex-col gap-2 w-full sm:w-auto">
+              <div class="flex items-center gap-3">
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-technical">Speed:</span>
+                <input type="range" id="slider-speed" min="0.5" max="3.0" step="0.25" value="1.0" class="tech-slider cursor-pointer">
+                <span id="text-speed" class="text-xs text-[#00e1d9] font-bold font-technical">1.0x</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[9px] text-slate-600 font-technical uppercase tracking-wider">Presets:</span>
+                <button data-speed="0.5" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">0.5x</button>
+                <button data-speed="1.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold speed-preset-active">1.0x</button>
+                <button data-speed="2.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">2.0x</button>
+                <button data-speed="5.0" class="speed-preset-btn tech-btn text-[9px] px-2 py-1 rounded font-technical font-bold">5.0x</button>
+              </div>
+            </div>
           </div>
+
+          <!-- Timeline Scrubbing Slider Row -->
+          <div class="flex items-center gap-3 w-full border-t border-slate-900/60 pt-3 flex-wrap">
+            <span class="text-[9px] text-slate-500 font-technical uppercase tracking-wider select-none font-bold">Timeline</span>
+            <input type="range" id="slider-timeline" min="0" max="0" value="0" class="tech-slider flex-1 cursor-pointer" title="Scrub Playback Timeline">
+            <span id="text-timeline-val" class="text-[10px] text-slate-400 font-technical font-bold select-none min-w-[65px] text-right">Step 0/0</span>
+          </div>
+        </div>
 
           <!-- Audio Settings Drawer -->
           <div id="audio-settings-drawer" class="hidden w-full flex items-center gap-4 flex-wrap bg-[#090d16] border border-slate-900 rounded px-4 py-2">
