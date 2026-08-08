@@ -41,6 +41,7 @@ let btnApplyInput;
 let narrativeText;
 let selectPreset;
 let btnSavePreset;
+let btnCopyPreset;
 let btnReset;
 let btnDeletePreset;
 let btnToggleSandbox;
@@ -111,6 +112,7 @@ export async function initPlayer(algoName) {
     narrativeText = document.getElementById('narrative-text');
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
+    btnCopyPreset = document.getElementById('btn-copy-preset');
     btnReset = document.getElementById('btn-reset');
     btnDeletePreset = document.getElementById('btn-delete-preset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
@@ -1584,6 +1586,23 @@ function bindEvents() {
       if (selectPreset) {
         selectPreset.value = val;
       }
+    });
+  }
+
+  // Click event on btn-copy-preset
+  if (btnCopyPreset) {
+    btnCopyPreset.addEventListener('click', () => {
+      const arrayStr = defaultArray.join(',');
+      navigator.clipboard.writeText(arrayStr).then(() => {
+        const origText = btnCopyPreset.textContent;
+        btnCopyPreset.textContent = '✅ Copied!';
+        setTimeout(() => {
+          btnCopyPreset.textContent = origText;
+        }, 1500);
+        appendConsoleLog(`[SYSTEM] Copied active array to clipboard: [${arrayStr}]`);
+      }).catch((err) => {
+        console.error('Failed to copy active array preset:', err);
+      });
     });
   }
 
