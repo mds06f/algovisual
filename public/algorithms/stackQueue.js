@@ -10,6 +10,8 @@ export const algorithm = {
     'Stack Pop(): val = stack[top], top = top - 1',
     'Queue Enqueue(x): rear = rear + 1, queue[rear] = x',
     'Queue Dequeue(): val = queue[front], front = front + 1',
+    'Deque PushFront(x): shift elements right, deque[0] = x',
+    'Deque PopFront(): val = deque[0], shift elements left'
   ],
   generator: function (arr) {
     const snapshots = [];
