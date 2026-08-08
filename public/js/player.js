@@ -10,6 +10,8 @@ let snapshots = [];
 let currentIndex = 0;
 let isPlaying = false;
 let isLooping = false;
+let playbackDirection = 'forward';
+let showBarLabels = true;
 let playbackInterval = null;
 let speedDelay = 600; // ms per step (default)
 let currentAlgorithm = null;
@@ -28,6 +30,10 @@ let btnUndo;
 let prevBtn;
 let nextBtn;
 let btnLoop;
+let btnDirectionToggle;
+let directionToggleIcon;
+let btnTtsRead;
+let toggleBarLabels;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -35,6 +41,7 @@ let btnApplyInput;
 let narrativeText;
 let selectPreset;
 let btnSavePreset;
+let btnCopyPreset;
 let btnReset;
 let btnDeletePreset;
 let btnToggleSandbox;
@@ -94,6 +101,10 @@ export async function initPlayer(algoName) {
     prevBtn = document.getElementById('btn-prev');
     nextBtn = document.getElementById('btn-next');
     btnLoop = document.getElementById('btn-loop');
+    btnDirectionToggle = document.getElementById('btn-direction-toggle');
+    directionToggleIcon = document.getElementById('direction-toggle-icon');
+    btnTtsRead = document.getElementById('btn-tts-read');
+    toggleBarLabels = document.getElementById('toggle-bar-labels');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -101,6 +112,7 @@ export async function initPlayer(algoName) {
     narrativeText = document.getElementById('narrative-text');
     selectPreset = document.getElementById('select-preset');
     btnSavePreset = document.getElementById('btn-save-preset');
+    btnCopyPreset = document.getElementById('btn-copy-preset');
     btnReset = document.getElementById('btn-reset');
     btnDeletePreset = document.getElementById('btn-delete-preset');
     btnToggleSandbox = document.getElementById('btn-toggle-sandbox');
@@ -185,6 +197,21 @@ export async function initPlayer(algoName) {
 
     // Initial setup
     resetPlayroom(defaultArray, initialTarget);
+
+    // Increment explorations stats in local storage
+    try {
+      let explorations = parseInt(localStorage.getItem('algovisual_explorations') || '0', 10);
+      explorations++;
+      localStorage.setItem('algovisual_explorations', explorations);
+      
+      if (window.ROOM_ID) {
+        let rooms = parseInt(localStorage.getItem('algovisual_rooms') || '0', 10);
+        rooms++;
+        localStorage.setItem('algovisual_rooms', rooms);
+      }
+    } catch (err) {
+      console.warn('Failed to update telemetry visits stats:', err);
+    }
 
     // Bind event listeners
     bindEvents();
@@ -532,7 +559,7 @@ function renderBars(
           ? 'border-cyan-400 bg-cyan-950/60 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)] scale-105'
           : 'border-slate-800 bg-slate-950/60 text-slate-200'
       }`;
-      cell.textContent = val;
+      cell.textContent = showBarLabels ? val : '';
       barsContainer.appendChild(cell);
     });
     return;
@@ -642,7 +669,7 @@ function renderBars(
 
       cell.innerHTML = `
         ${badgesHtml}
-        <span>${value}</span>
+        <span>${showBarLabels ? value : ''}</span>
         <span class="text-[9px] text-slate-500 absolute bottom-1 right-1 font-mono font-light select-none">${index}</span>
       `;
       barsContainer.appendChild(cell);
@@ -680,7 +707,7 @@ function renderBars(
       col.innerHTML = `
         ${pointerHtml}
         <div class="${tubeClass}" style="height:${heightPercent}%"></div>
-        <span class="text-slate-400 font-technical text-xs mt-2 select-none font-semibold font-mono">${value}</span>
+        <span class="text-slate-400 font-technical text-xs mt-2 select-none font-semibold font-mono ${showBarLabels ? '' : 'hidden'}">${value}</span>
       `;
       mainRow.appendChild(col);
     });
@@ -918,21 +945,40 @@ function startAnimation() {
   updateStatusHUD('RUNNING');
 
   playbackInterval = setInterval(() => {
-    if (currentIndex < snapshots.length - 1) {
-      currentIndex++;
-      renderSnapshot(currentIndex);
-      const curLine = snapshots[currentIndex]?.executingLine;
-      if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+    if (playbackDirection === 'forward') {
+      if (currentIndex < snapshots.length - 1) {
+        currentIndex++;
+        renderSnapshot(currentIndex);
+        const curLine = snapshots[currentIndex]?.executingLine;
+        if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+          pauseAnimation();
+          appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        }
+      } else if (isLooping) {
+        currentIndex = 0;
+        renderSnapshot(currentIndex);
+      } else {
         pauseAnimation();
-        appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        updateStatusHUD('FINISHED');
+        recordTelemetryToIDB();
       }
-    } else if (isLooping) {
-      currentIndex = 0;
-      renderSnapshot(currentIndex);
     } else {
-      pauseAnimation();
-      updateStatusHUD('FINISHED');
-      recordTelemetryToIDB();
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSnapshot(currentIndex);
+        const curLine = snapshots[currentIndex]?.executingLine;
+        if (curLine !== undefined && activeBreakpoints.has(curLine)) {
+          pauseAnimation();
+          appendConsoleLog(`[BREAKPOINT] Execution paused at line ${curLine}`);
+        }
+      } else if (isLooping) {
+        currentIndex = snapshots.length - 1;
+        renderSnapshot(currentIndex);
+      } else {
+        pauseAnimation();
+        updateStatusHUD('FINISHED');
+        recordTelemetryToIDB();
+      }
     }
   }, speedDelay);
 }
@@ -1000,6 +1046,41 @@ function bindEvents() {
       isLooping = !isLooping;
       btnLoop.classList.toggle('tech-btn-primary', isLooping);
       appendConsoleLog(`[PLAYBACK] Auto-loop mode ${isLooping ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
+
+  if (btnDirectionToggle) {
+    btnDirectionToggle.addEventListener('click', () => {
+      playbackDirection = playbackDirection === 'forward' ? 'backward' : 'forward';
+      if (directionToggleIcon) {
+        directionToggleIcon.textContent = playbackDirection === 'forward' ? '➡️' : '⬅️';
+      }
+      btnDirectionToggle.classList.toggle('tech-btn-primary', playbackDirection === 'backward');
+      appendConsoleLog(`[PLAYBACK] Auto-play direction changed to ${playbackDirection.toUpperCase()}`);
+    });
+  }
+  if (btnTtsRead) {
+    btnTtsRead.addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        if (narrativeText && narrativeText.textContent) {
+          const utterance = new SpeechSynthesisUtterance(narrativeText.textContent);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          window.speechSynthesis.speak(utterance);
+          appendConsoleLog(`[TTS] Speaking description: "${narrativeText.textContent.slice(0, 30)}..."`);
+        }
+      } else {
+        alert('Text-to-Speech is not supported in this browser.');
+      }
+    });
+  }
+
+  if (toggleBarLabels) {
+    toggleBarLabels.addEventListener('change', (e) => {
+      showBarLabels = e.target.checked;
+      renderSnapshot(currentIndex);
+      appendConsoleLog(`[SETTINGS] Numeric value labels on bars ${showBarLabels ? 'ENABLED' : 'DISABLED'}`);
     });
   }
 
@@ -1520,6 +1601,23 @@ function bindEvents() {
       if (selectPreset) {
         selectPreset.value = val;
       }
+    });
+  }
+
+  // Click event on btn-copy-preset
+  if (btnCopyPreset) {
+    btnCopyPreset.addEventListener('click', () => {
+      const arrayStr = defaultArray.join(',');
+      navigator.clipboard.writeText(arrayStr).then(() => {
+        const origText = btnCopyPreset.textContent;
+        btnCopyPreset.textContent = '✅ Copied!';
+        setTimeout(() => {
+          btnCopyPreset.textContent = origText;
+        }, 1500);
+        appendConsoleLog(`[SYSTEM] Copied active array to clipboard: [${arrayStr}]`);
+      }).catch((err) => {
+        console.error('Failed to copy active array preset:', err);
+      });
     });
   }
 
