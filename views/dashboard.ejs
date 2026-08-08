@@ -36,6 +36,24 @@
       </p>
     </div>
 
+    <!-- Statistics HUD Tracker Card -->
+    <div class="cyber-panel p-4 mb-6 flex flex-col sm:flex-row gap-4 items-center justify-around bg-[#090d16]/30 border-cyan-950/40">
+      <div class="text-center">
+        <span class="text-[9px] text-slate-500 font-technical uppercase block tracking-wider">Total Platform Visits</span>
+        <span id="stat-visits-count" class="text-xl font-technical font-bold text-[#00e1d9]">1</span>
+      </div>
+      <div class="border-r border-slate-900 h-8 hidden sm:block"></div>
+      <div class="text-center">
+        <span class="text-[9px] text-slate-500 font-technical uppercase block tracking-wider">Algorithm Explorations</span>
+        <span id="stat-explorations-count" class="text-xl font-technical font-bold text-[#7c3aed]">0</span>
+      </div>
+      <div class="border-r border-slate-900 h-8 hidden sm:block"></div>
+      <div class="text-center">
+        <span class="text-[9px] text-slate-500 font-technical uppercase block tracking-wider">Classrooms Joined</span>
+        <span id="stat-classrooms-count" class="text-xl font-technical font-bold text-[#f59e0b]">0</span>
+      </div>
+    </div>
+
     <!-- Search & Category Filter Control Bar -->
     <div class="cyber-panel p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
       <div class="relative w-full sm:w-72">
@@ -459,6 +477,21 @@
           updateToggleIcon();
         });
       }
+
+      // Increment and load dashboard telemetry statistics
+      let visits = parseInt(localStorage.getItem('algovisual_visits') || '0', 10);
+      visits++;
+      localStorage.setItem('algovisual_visits', visits);
+      const visitsElem = document.getElementById('stat-visits-count');
+      if (visitsElem) visitsElem.textContent = visits;
+
+      const explorations = parseInt(localStorage.getItem('algovisual_explorations') || '0', 10);
+      const explorationsElem = document.getElementById('stat-explorations-count');
+      if (explorationsElem) explorationsElem.textContent = explorations;
+
+      const classrooms = parseInt(localStorage.getItem('algovisual_rooms') || '0', 10);
+      const classroomsElem = document.getElementById('stat-classrooms-count');
+      if (classroomsElem) classroomsElem.textContent = classrooms;
 
       // Algorithm Search & Filter Logic
       const searchInput = document.getElementById('search-algo');

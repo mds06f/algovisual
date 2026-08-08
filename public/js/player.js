@@ -198,6 +198,21 @@ export async function initPlayer(algoName) {
     // Initial setup
     resetPlayroom(defaultArray, initialTarget);
 
+    // Increment explorations stats in local storage
+    try {
+      let explorations = parseInt(localStorage.getItem('algovisual_explorations') || '0', 10);
+      explorations++;
+      localStorage.setItem('algovisual_explorations', explorations);
+      
+      if (window.ROOM_ID) {
+        let rooms = parseInt(localStorage.getItem('algovisual_rooms') || '0', 10);
+        rooms++;
+        localStorage.setItem('algovisual_rooms', rooms);
+      }
+    } catch (err) {
+      console.warn('Failed to update telemetry visits stats:', err);
+    }
+
     // Bind event listeners
     bindEvents();
 
