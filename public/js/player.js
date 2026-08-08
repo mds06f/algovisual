@@ -34,6 +34,7 @@ let btnDirectionToggle;
 let directionToggleIcon;
 let btnTtsRead;
 let toggleBarLabels;
+let selectEditorTheme;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -122,6 +123,7 @@ export async function initPlayer(algoName) {
     inputImportAlgo = document.getElementById('input-import-algo');
     sandboxContainer = document.getElementById('sandbox-container');
     sandboxTextarea = document.getElementById('sandbox-textarea');
+    selectEditorTheme = document.getElementById('select-editor-theme');
     labelCodeType = document.getElementById('label-code-type');
     btnAudioToggle = document.getElementById('btn-audio-toggle');
     audioToggleIcon = document.getElementById('audio-toggle-icon');
@@ -1819,6 +1821,13 @@ function bindEvents() {
         btnToggleSandbox.textContent = 'PSEUDOCODE MODE';
         if (labelCodeType) labelCodeType.textContent = 'SANDBOX';
 
+        // Apply loaded theme class on switch
+        const storedTheme = localStorage.getItem('algovisual_editor_theme') || 'cyberpunk';
+        const editorWrap = document.getElementById('sandbox-editor-wrap');
+        if (editorWrap) {
+          editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+        }
+
         // Populate textarea with current algorithm's generator function code
         if (!sandboxTextarea.value.trim()) {
           sandboxTextarea.value = currentAlgorithm.generator.toString();
@@ -1831,6 +1840,26 @@ function bindEvents() {
         btnToggleSandbox.textContent = 'SANDBOX MODE';
         if (labelCodeType) labelCodeType.textContent = 'PSEUDOCODE';
       }
+    });
+  }
+
+  // Handle Sandbox Editor theme changes
+  if (selectEditorTheme) {
+    const storedTheme = localStorage.getItem('algovisual_editor_theme') || 'cyberpunk';
+    selectEditorTheme.value = storedTheme;
+    const editorWrap = document.getElementById('sandbox-editor-wrap');
+    if (editorWrap) {
+      editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+    }
+
+    selectEditorTheme.addEventListener('change', (e) => {
+      const themeVal = e.target.value;
+      localStorage.setItem('algovisual_editor_theme', themeVal);
+      const wrap = document.getElementById('sandbox-editor-wrap');
+      if (wrap) {
+        wrap.className = `flex-1 relative overflow-hidden theme-${themeVal}`;
+      }
+      appendConsoleLog(`[EDITOR] Switched sandbox theme to ${themeVal.toUpperCase()}`);
     });
   }
 
