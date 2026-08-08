@@ -50,6 +50,7 @@ let btnImportSession;
 let inputSessionFile;
 let btnToggleSandbox;
 let btnRunSandbox;
+let btnDeleteOfflineSandbox;
 let sandboxContainer;
 let sandboxTextarea;
 let labelCodeType;
@@ -127,6 +128,7 @@ export async function initPlayer(algoName) {
     btnExportAlgo = document.getElementById('btn-export-algo');
     btnImportAlgo = document.getElementById('btn-import-algo');
     inputImportAlgo = document.getElementById('input-import-algo');
+    btnDeleteOfflineSandbox = document.getElementById('btn-delete-offline-sandbox');
     sandboxContainer = document.getElementById('sandbox-container');
     sandboxTextarea = document.getElementById('sandbox-textarea');
     selectEditorTheme = document.getElementById('select-editor-theme');
@@ -1694,6 +1696,29 @@ function bindEvents() {
         appendConsoleLog(`[SYSTEM] Loaded offline algorithm: ${currentAlgorithm.name}`);
       } catch (err) {
         alert('Failed to load offline algorithm: ' + err.message);
+      }
+    });
+  }
+  // Click event on btn-delete-offline-sandbox
+  if (btnDeleteOfflineSandbox) {
+    btnDeleteOfflineSandbox.addEventListener('click', async () => {
+      const selectedName = selectOfflineSandbox ? selectOfflineSandbox.value : '';
+      if (!selectedName) {
+        alert('Please select an offline-saved custom algorithm from the dropdown list to delete.');
+        return;
+      }
+      const confirmDelete = confirm(`Are you sure you want to delete the offline-saved algorithm "${selectedName}"?`);
+      if (!confirmDelete) return;
+
+      try {
+        await deleteFromStore('sandbox', selectedName);
+        appendConsoleLog(`[SYSTEM] Deleted custom algorithm "${selectedName}" from offline IndexedDB storage.`);
+        if (selectOfflineSandbox) selectOfflineSandbox.value = '';
+        await loadOfflineSandboxDropdown();
+        alert(`Successfully deleted custom algorithm "${selectedName}".`);
+      } catch (err) {
+        console.error('Failed to delete custom algorithm from IndexedDB:', err);
+        alert('Failed to delete custom algorithm: ' + err.message);
       }
     });
   }
