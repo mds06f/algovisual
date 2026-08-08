@@ -1086,3 +1086,43 @@ select.tech-input option {
 #sandbox-editor-wrap.theme-light .sh-string { color: #859900 !important; }
 #sandbox-editor-wrap.theme-light .sh-comment { color: #93a1a1 !important; }
 #sandbox-editor-wrap.theme-light .sh-yield { color: #268bd2 !important; }
+
+/* Sandbox gutter and breakpoint click styles */
+#sandbox-gutter {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding-top: 16px;
+  width: 32px;
+  background: #090d16;
+  border-right: 1px solid #1e293b;
+  text-align: right;
+  padding-right: 6px;
+  color: #475569;
+  user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.gutter-line-num {
+  cursor: pointer;
+  height: 19.2px;
+  transition: color 0.15s ease;
+  position: relative;
+  padding-left: 10px;
+}
+.gutter-line-num:hover {
+  color: #94a3b8;
+}
+.gutter-line-num.bp-active {
+  color: #ef4444 !important;
+  font-weight: bold;
+}
+.gutter-line-num.bp-active::before {
+  content: '●';
+  color: #ef4444;
+  font-size: 8px;
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}

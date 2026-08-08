@@ -2010,7 +2010,7 @@ function bindEvents() {
         const storedTheme = localStorage.getItem('algovisual_editor_theme') || 'cyberpunk';
         const editorWrap = document.getElementById('sandbox-editor-wrap');
         if (editorWrap) {
-          editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+          editorWrap.className = `flex-1 relative overflow-hidden flex theme-${storedTheme}`;
         }
 
         // Populate textarea with current algorithm's generator function code
@@ -2034,7 +2034,7 @@ function bindEvents() {
     selectEditorTheme.value = storedTheme;
     const editorWrap = document.getElementById('sandbox-editor-wrap');
     if (editorWrap) {
-      editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+      editorWrap.className = `flex-1 relative overflow-hidden flex theme-${storedTheme}`;
     }
 
     selectEditorTheme.addEventListener('change', (e) => {
@@ -2042,13 +2042,27 @@ function bindEvents() {
       localStorage.setItem('algovisual_editor_theme', themeVal);
       const wrap = document.getElementById('sandbox-editor-wrap');
       if (wrap) {
-        wrap.className = `flex-1 relative overflow-hidden theme-${themeVal}`;
+        wrap.className = `flex-1 relative overflow-hidden flex theme-${themeVal}`;
       }
       appendConsoleLog(`[EDITOR] Switched sandbox theme to ${themeVal.toUpperCase()}`);
     });
   }
 
   // ── Syntax Highlighter ──────────────────────────────────────────────────
+  // ── Syntax Highlighter ──────────────────────────────────────────────────
+  function updateSandboxGutter() {
+    const gutter = document.getElementById('sandbox-gutter');
+    if (!gutter || !sandboxTextarea) return;
+    const linesCount = sandboxTextarea.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= linesCount; i++) {
+      const isBreakpoint = activeBreakpoints.has(i);
+      html += `<div class="gutter-line-num${isBreakpoint ? ' bp-active' : ''}" data-line="${i}">${i}</div>`;
+    }
+    gutter.innerHTML = html;
+    gutter.scrollTop = sandboxTextarea.scrollTop;
+  }
+
   function syncHighlight() {
     const highlightEl = document.getElementById('sandbox-highlight');
     if (!sandboxTextarea || !highlightEl) return;
@@ -2072,12 +2086,51 @@ function bindEvents() {
     // Mirror scroll
     highlightEl.scrollTop = sandboxTextarea.scrollTop;
     highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+    updateSandboxGutter();
   }
 
   if (sandboxTextarea) {
-    sandboxTextarea.addEventListener('input', syncHighlight);
-    sandboxTextarea.addEventListener('scroll', syncHighlight);
+    sandboxTextarea.addEventListener('input', () => {
+      syncHighlight();
+      updateSandboxGutter();
+    });
+    sandboxTextarea.addEventListener('scroll', () => {
+      const highlightEl = document.getElementById('sandbox-highlight');
+      if (highlightEl) {
+        highlightEl.scrollTop = sandboxTextarea.scrollTop;
+        highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+      }
+      const gutter = document.getElementById('sandbox-gutter');
+      if (gutter) {
+        gutter.scrollTop = sandboxTextarea.scrollTop;
+      }
+    });
     sandboxTextarea.addEventListener('keydown', syncHighlight);
+  }
+
+  const sandboxGutter = document.getElementById('sandbox-gutter');
+  if (sandboxGutter) {
+    sandboxGutter.addEventListener('click', (e) => {
+      const lineNumDiv = e.target.closest('.gutter-line-num');
+      if (!lineNumDiv) return;
+      const lineNum = parseInt(lineNumDiv.dataset.line, 10);
+      if (isNaN(lineNum)) return;
+
+      if (activeBreakpoints.has(lineNum)) {
+        activeBreakpoints.delete(lineNum);
+        appendConsoleLog(`[DEBUGGER] Removed breakpoint on line ${lineNum}`);
+      } else {
+        activeBreakpoints.add(lineNum);
+        appendConsoleLog(`[DEBUGGER] Set breakpoint on line ${lineNum}`);
+      }
+      updateSandboxGutter();
+      const textActiveBp = document.getElementById('text-active-breakpoints');
+      if (textActiveBp) {
+        textActiveBp.textContent = activeBreakpoints.size > 0
+          ? Array.from(activeBreakpoints).sort((a, b) => a - b).join(', ')
+          : 'None';
+      }
+    });
   }
 
   function transpileOrGuard(code) {
