@@ -42,8 +42,9 @@ export const algorithm = {
     const heuristicType =
       typeof target === 'string' ? target.toLowerCase() : 'manhattan';
 
-    // Parse wall configuration
+    // Parse wall and weight configurations
     const wallIndices = new Set();
+    const weightIndices = new Set();
     if (arr && arr.length === TOTAL_NODES) {
       arr.forEach((cellType, idx) => {
         if (
@@ -52,6 +53,12 @@ export const algorithm = {
           idx !== END_INDEX
         ) {
           wallIndices.add(idx);
+        } else if (
+          cellType === 6 &&
+          idx !== START_INDEX &&
+          idx !== END_INDEX
+        ) {
+          weightIndices.add(idx);
         }
       });
     } else {
@@ -103,8 +110,13 @@ export const algorithm = {
     const fghScores = {}; // index -> { f, g, h }
     const getGridState = (visitedNodes, pathNodes) => {
       const state = [...grid];
-      visitedNodes.forEach((idx) => {
+      weightIndices.forEach((idx) => {
         if (idx !== START_INDEX && idx !== END_INDEX) {
+          state[idx] = 6;
+        }
+      });
+      visitedNodes.forEach((idx) => {
+        if (idx !== START_INDEX && idx !== END_INDEX && !weightIndices.has(idx)) {
           state[idx] = STATE_VISITED;
         }
       });
@@ -209,7 +221,8 @@ export const algorithm = {
         if (wallIndices.has(v)) continue;
         if (closedSet.has(v)) continue;
 
-        const tentativeG = gScore[u] + 1;
+        const cost = weightIndices.has(v) ? 5 : 1;
+        const tentativeG = gScore[u] + cost;
 
         if (tentativeG < gScore[v]) {
           parent[v] = u;
