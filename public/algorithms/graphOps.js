@@ -29,34 +29,42 @@ export const algorithm = {
     // Unpack target option (defaults to bfs starting at A)
     let algoType = 'bfs';
     let startNode = 'A';
+    let graphType = 'undirected';
     
     if (target && typeof target === 'object') {
       algoType = target.algoType || 'bfs';
       startNode = target.startNode || 'A';
+      graphType = target.graphType || 'undirected';
     } else if (typeof target === 'string') {
       algoType = target;
     }
 
+    const isDirected = graphType === 'directed';
     const snapshots = [];
 
     // Helper to get sorted edge key
     const getEdgeKey = (u, v) => [u, v].sort().join('-');
 
     if (algoType === 'bfs') {
-      runBFS(startNode, snapshots, getEdgeKey);
+      runBFS(startNode, snapshots, getEdgeKey, isDirected);
     } else if (algoType === 'dfs') {
-      runDFS(startNode, snapshots, getEdgeKey);
+      runDFS(startNode, snapshots, getEdgeKey, isDirected);
     } else if (algoType === 'prim') {
       runPrim(startNode, snapshots, getEdgeKey);
     } else if (algoType === 'kruskal') {
       runKruskal(snapshots, getEdgeKey);
     }
 
+    // Attach isDirected metadata to all snapshots
+    snapshots.forEach(s => {
+      s.isDirected = isDirected;
+    });
+
     return snapshots;
   }
 };
 
-function runBFS(start, snapshots, getEdgeKey) {
+function runBFS(start, snapshots, getEdgeKey, isDirected = false) {
   const queue = [start];
   const visited = new Set([start]);
   const nodesState = {};
@@ -107,7 +115,7 @@ function runBFS(start, snapshots, getEdgeKey) {
     edges.forEach(e => {
       comparisons++;
       if (e.u === curr) neighbors.push({ neighbor: e.v, edge: e });
-      else if (e.v === curr) neighbors.push({ neighbor: e.u, edge: e });
+      else if (!isDirected && e.v === curr) neighbors.push({ neighbor: e.u, edge: e });
     });
 
     neighbors.forEach(({ neighbor, edge }) => {
@@ -162,7 +170,7 @@ function runBFS(start, snapshots, getEdgeKey) {
   });
 }
 
-function runDFS(start, snapshots, getEdgeKey) {
+function runDFS(start, snapshots, getEdgeKey, isDirected = false) {
   const visited = new Set();
   const nodesState = {};
   const edgesState = {};
@@ -204,7 +212,7 @@ function runDFS(start, snapshots, getEdgeKey) {
     edges.forEach(e => {
       comparisons++;
       if (e.u === curr) neighbors.push(e.v);
-      else if (e.v === curr) neighbors.push(e.u);
+      else if (!isDirected && e.v === curr) neighbors.push(e.u);
     });
 
     for (let neighbor of neighbors) {
