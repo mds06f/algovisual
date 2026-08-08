@@ -123,6 +123,7 @@
       <div class="flex items-center gap-1 ml-auto">
         <button id="btn-export-json" class="tech-btn text-[9px] px-2 py-1.5 rounded font-technical font-bold uppercase" title="Export report as JSON">Export JSON</button>
         <button id="btn-export-csv" class="tech-btn text-[9px] px-2 py-1.5 rounded font-technical font-bold uppercase" title="Export report as CSV">Export CSV</button>
+        <button id="btn-compare-benchmark" class="tech-btn text-[9px] px-2 py-1.5 rounded font-technical font-bold uppercase border border-amber-500/40 text-amber-300" title="Run real-time speed complexity benchmarking">Benchmark Complexity</button>
       </div>
     </div>
   </div>
@@ -188,6 +189,21 @@
       <p id="narration-b" class="text-[10px] text-slate-400 font-light leading-relaxed min-h-[32px]"></p>
     </div>
 
+  </div>
+
+  <!-- Benchmark Chart Panel (hidden by default) -->
+  <div id="compare-benchmark-panel" class="max-w-7xl mx-auto mt-6 cyber-panel p-5 hidden flex flex-col gap-4">
+    <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+      <span class="text-xs font-bold text-slate-200 font-technical uppercase tracking-wider">Algorithmic Run-Time Complexity Benchmark</span>
+      <button id="btn-compare-close-benchmark" class="text-xs text-slate-500 hover:text-slate-300 font-bold px-1">&times;</button>
+    </div>
+    <div class="flex items-center justify-center bg-slate-950/40 rounded border border-slate-900 p-4 min-h-[220px]" id="compare-benchmark-chart">
+      <!-- SVG chart plotted here -->
+    </div>
+    <div class="flex justify-center gap-6 text-[9px] font-technical uppercase">
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#00e1d9] rounded-sm"></span><span id="legend-compare-a">Algorithm A</span></div>
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#f43f5e] rounded-sm"></span><span id="legend-compare-b">Algorithm B</span></div>
+    </div>
   </div>
 
   <script type="module">
@@ -397,6 +413,142 @@
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
       updateIcon();
     });
+
+    // ── Benchmarking ──────────────────────────────────────────────────────────
+    const btnCompareBenchmark = document.getElementById('btn-compare-benchmark');
+    const compareBenchmarkPanel = document.getElementById('compare-benchmark-panel');
+    const btnCompareCloseBenchmark = document.getElementById('btn-compare-close-benchmark');
+    const compareBenchmarkChart = document.getElementById('compare-benchmark-chart');
+
+    if (btnCompareCloseBenchmark) {
+      btnCompareCloseBenchmark.addEventListener('click', () => {
+        compareBenchmarkPanel.classList.add('hidden');
+      });
+    }
+
+    if (btnCompareBenchmark) {
+      btnCompareBenchmark.addEventListener('click', async () => {
+        if (!snapshotsA.length || !snapshotsB.length) {
+          alert('Please load the algorithms first.');
+          return;
+        }
+
+        const nameA = selectAlgoA.value;
+        const nameB = selectAlgoB.value;
+
+        try {
+          const [modA, modB] = await Promise.all([
+            import(`/algorithms/${nameA}.js`),
+            import(`/algorithms/${nameB}.js`)
+          ]);
+
+          const algA = modA.algorithm;
+          const algB = modB.algorithm;
+
+          const sizes = [10, 50, 100, 250, 500];
+          const dataPointsA = [];
+          const dataPointsB = [];
+
+          for (const size of sizes) {
+            const testInput = Array.from({ length: size }, () => Math.floor(Math.random() * size));
+
+            // Run A
+            let minTimeA = Infinity;
+            for (let run = 0; run < 3; run++) {
+              const t0 = performance.now();
+              algA.generator([...testInput]);
+              const t1 = performance.now();
+              const elapsed = t1 - t0;
+              if (elapsed < minTimeA) minTimeA = elapsed;
+            }
+            dataPointsA.push({ size, time: minTimeA });
+
+            // Run B
+            let minTimeB = Infinity;
+            for (let run = 0; run < 3; run++) {
+              const t0 = performance.now();
+              algB.generator([...testInput]);
+              const t1 = performance.now();
+              const elapsed = t1 - t0;
+              if (elapsed < minTimeB) minTimeB = elapsed;
+            }
+            dataPointsB.push({ size, time: minTimeB });
+          }
+
+          // Render comparison SVG chart
+          const width = 600;
+          const height = 180;
+          const padding = 35;
+          const chartW = width - 2 * padding;
+          const chartH = height - 2 * padding;
+
+          const maxValX = sizes[sizes.length - 1];
+          const maxValY = Math.max(...dataPointsA.map(d => d.time), ...dataPointsB.map(d => d.time)) || 0.001;
+
+          // Map A
+          const pointsA = dataPointsA.map(d => ({
+            x: padding + (d.size / maxValX) * chartW,
+            y: height - padding - (d.time / maxValY) * chartH,
+            size: d.size,
+            time: d.time
+          }));
+
+          // Map B
+          const pointsB = dataPointsB.map(d => ({
+            x: padding + (d.size / maxValX) * chartW,
+            y: height - padding - (d.time / maxValY) * chartH,
+            size: d.size,
+            time: d.time
+          }));
+
+          // Path lines
+          let pathDA = `M ${pointsA[0].x} ${pointsA[0].y}`;
+          let pathDB = `M ${pointsB[0].x} ${pointsB[0].y}`;
+          for (let i = 1; i < sizes.length; i++) {
+            pathDA += ` L ${pointsA[i].x} ${pointsA[i].y}`;
+            pathDB += ` L ${pointsB[i].x} ${pointsB[i].y}`;
+          }
+
+          let dotsA = '', dotsB = '';
+          for (let i = 0; i < sizes.length; i++) {
+            dotsA += `<circle cx="${pointsA[i].x}" cy="${pointsA[i].y}" r="3.5" fill="#00e1d9"><title>${algA.name} - Size: ${pointsA[i].size}, Time: ${pointsA[i].time.toFixed(4)}ms</title></circle>`;
+            dotsB += `<circle cx="${pointsB[i].x}" cy="${pointsB[i].y}" r="3.5" fill="#f43f5e"><title>${algB.name} - Size: ${pointsB[i].size}, Time: ${pointsB[i].time.toFixed(4)}ms</title></circle>`;
+          }
+
+          const svgHTML = `
+            <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" class="overflow-visible">
+              <!-- Y-axis line -->
+              <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#1e293b" stroke-width="1.5" />
+              <!-- X-axis line -->
+              <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#1e293b" stroke-width="1.5" />
+              
+              <!-- Grid lines -->
+              <line x1="${padding}" y1="${padding + chartH * 0.5}" x2="${width - padding}" y2="${padding + chartH * 0.5}" stroke="#0f172a" stroke-dasharray="3,3" />
+              
+              <!-- Graph paths -->
+              <path d="${pathDA}" fill="none" stroke="#00e1d9" stroke-width="2.5" />
+              <path d="${pathDB}" fill="none" stroke="#f43f5e" stroke-width="2.5" />
+              
+              ${dotsA}
+              ${dotsB}
+              
+              <!-- Labels -->
+              <text x="${padding - 8}" y="${padding + 4}" fill="#64748b" font-size="8px" text-anchor="end" font-family="monospace">${maxValY.toFixed(2)}ms</text>
+              <text x="${padding - 8}" y="${height - padding + 4}" fill="#64748b" font-size="8px" text-anchor="end" font-family="monospace">0ms</text>
+              <text x="${width - padding}" y="${height - padding + 12}" fill="#64748b" font-size="8px" text-anchor="middle" font-family="monospace">N:${maxValX}</text>
+            </svg>
+          `;
+
+          compareBenchmarkChart.innerHTML = svgHTML;
+          document.getElementById('legend-compare-a').textContent = algA.name;
+          document.getElementById('legend-compare-b').textContent = algB.name;
+          compareBenchmarkPanel.classList.remove('hidden');
+        } catch (err) {
+          console.error(err);
+          alert('Failed to run benchmark: ' + err.message);
+        }
+      });
+    }
 
     // ── Initial load ──────────────────────────────────────────────────────────
     await loadAlgorithms('<%= algoA %>', '<%= algoB %>');

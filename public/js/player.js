@@ -259,7 +259,7 @@ function applyCategoryUI(category, algoName) {
   let initialTarget = undefined;
 
   if (customInputsContainer) {
-    if (category === 'Pathfinding' || category === 'Graph') {
+    if (category === 'Pathfinding' || category === 'Graph' || category === 'DP') {
       customInputsContainer.classList.add('hidden');
     } else {
       customInputsContainer.classList.remove('hidden');
@@ -322,8 +322,29 @@ function applyCategoryUI(category, algoName) {
   if (containerTreeInputs) {
     if (category === 'Tree') {
       containerTreeInputs.classList.remove('hidden');
-      if (selectTreeMode) {
-        initialTarget = selectTreeMode.value || 'avl';
+      const treeModeLabel = document.getElementById('tree-mode-label');
+      const balancingOpts = selectTreeMode ? Array.from(selectTreeMode.options).filter(o => ['avl','rbt'].includes(o.value)) : [];
+      const traversalOpts = selectTreeMode ? Array.from(selectTreeMode.querySelectorAll('.traversal-opt')) : [];
+
+      if (algoName === 'treeTraversals') {
+        // Show traversal options, hide balancing options
+        balancingOpts.forEach(o => { o.hidden = true; o.disabled = true; });
+        traversalOpts.forEach(o => { o.hidden = false; o.disabled = false; o.classList.remove('hidden'); });
+        if (treeModeLabel) treeModeLabel.textContent = 'Traversal Mode';
+        if (selectTreeMode) {
+          // Default to 'all' if current value is a balancing mode
+          if (['avl','rbt'].includes(selectTreeMode.value)) selectTreeMode.value = 'all';
+          initialTarget = selectTreeMode.value;
+        }
+      } else {
+        // Show balancing options, hide traversal options
+        balancingOpts.forEach(o => { o.hidden = false; o.disabled = false; });
+        traversalOpts.forEach(o => { o.hidden = true; o.disabled = true; o.classList.add('hidden'); });
+        if (treeModeLabel) treeModeLabel.textContent = 'Balancing Mode';
+        if (selectTreeMode) {
+          if (['preorder','inorder','postorder','all'].includes(selectTreeMode.value)) selectTreeMode.value = 'avl';
+          initialTarget = selectTreeMode.value || 'avl';
+        }
       }
     } else {
       containerTreeInputs.classList.add('hidden');
@@ -332,10 +353,22 @@ function applyCategoryUI(category, algoName) {
 
   const containerRandomize = document.getElementById('container-randomize');
   if (containerRandomize) {
-    if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures') {
+    if (category === 'Pathfinding' || category === 'Graph' || category === 'Data Structures' || category === 'DP') {
       containerRandomize.classList.add('hidden');
     } else {
       containerRandomize.classList.remove('hidden');
+    }
+  }
+
+  // DP mode selector
+  const containerDpInputs = document.getElementById('container-dp-inputs');
+  if (containerDpInputs) {
+    if (category === 'DP') {
+      containerDpInputs.classList.remove('hidden');
+      const selectDpMode = document.getElementById('select-dp-mode');
+      initialTarget = selectDpMode ? selectDpMode.value || 'lcs' : 'lcs';
+    } else {
+      containerDpInputs.classList.add('hidden');
     }
   }
 
@@ -523,7 +556,122 @@ function renderSnapshot(index) {
   }
 }
 
+function renderDPTable(snap) {
+  const { dpTable, dpStrings, dpHighlight, dpBacktrack = [], dpMode, dpPhase } = snap;
+  const { s1, s2 } = dpStrings;
+  const m = s1.length;
+  const n = s2.length;
+  const backtrackSet = new Set(dpBacktrack.map(([r, c]) => `${r},${c}`));
+
+  // Phase banner
+  const phaseLabel = dpPhase === 'backtrack' ? 'BACKTRACKING' : dpPhase === 'done' ? 'COMPLETE' : 'FILLING TABLE';
+  const phaseBg = dpPhase === 'backtrack' ? 'bg-cyan-900/40 border-cyan-500/40 text-cyan-300' : dpPhase === 'done' ? 'bg-emerald-900/40 border-emerald-500/40 text-emerald-300' : 'bg-amber-900/30 border-amber-500/30 text-amber-300';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col items-center gap-3 w-full';
+
+  // Phase pill
+  const pill = document.createElement('div');
+  pill.className = `text-[9px] font-bold font-technical uppercase tracking-widest px-3 py-1 rounded-full border ${phaseBg}`;
+  pill.textContent = `${dpMode === 'lcs' ? 'LCS' : 'Edit Distance'} · ${phaseLabel}`;
+  wrapper.appendChild(pill);
+
+  // String labels
+  const strLabel = document.createElement('div');
+  strLabel.className = 'text-[10px] font-technical text-slate-400';
+  strLabel.innerHTML = `<span class="text-cyan-400 font-bold">S1</span>: "${s1}" &nbsp;|&nbsp; <span class="text-amber-400 font-bold">S2</span>: "${s2}"`;
+  wrapper.appendChild(strLabel);
+
+  // Table
+  const tableEl = document.createElement('table');
+  tableEl.className = 'dp-table border-collapse text-[10px] font-technical';
+  tableEl.style.borderSpacing = '0';
+
+  const cellSize = Math.min(36, Math.floor(Math.min(window.innerWidth * 0.6, 600) / (n + 3)));
+
+  const makeCell = (content, cls = '') => {
+    const td = document.createElement('td');
+    td.className = cls;
+    td.style.width = `${cellSize}px`;
+    td.style.height = `${cellSize}px`;
+    td.style.textAlign = 'center';
+    td.style.verticalAlign = 'middle';
+    td.style.border = '1px solid rgba(51,65,85,0.6)';
+    td.style.transition = 'background 0.2s, color 0.2s';
+    td.innerHTML = content;
+    return td;
+  };
+
+  // Header row: '' | '' | s2 chars
+  const headRow = document.createElement('tr');
+  headRow.appendChild(makeCell('', 'text-slate-700'));
+  headRow.appendChild(makeCell('', 'text-slate-700'));
+  headRow.appendChild(makeCell('ε', 'text-slate-500 font-bold'));
+  for (let j = 0; j < n; j++) {
+    const th = makeCell(`<span style="color:#f59e0b;font-weight:bold">${s2[j]}</span>`);
+    headRow.appendChild(th);
+  }
+  tableEl.appendChild(headRow);
+
+  // Data rows
+  for (let i = 0; i <= m; i++) {
+    const tr = document.createElement('tr');
+
+    // Row s1 char label
+    const rowChar = i === 0 ? 'ε' : `<span style="color:#22d3ee;font-weight:bold">${s1[i-1]}</span>`;
+    const rowIdx = makeCell(i === 0 ? '' : `${i}`, 'text-slate-600 text-[9px]');
+    tr.appendChild(rowIdx);
+    tr.appendChild(makeCell(rowChar, 'font-bold'));
+
+    for (let j = 0; j <= n; j++) {
+      const isActive   = dpHighlight && dpHighlight.i === i && dpHighlight.j === j;
+      const isBacktrack = backtrackSet.has(`${i},${j}`);
+      const isBase     = i === 0 || j === 0;
+      const val = dpTable[i] && dpTable[i][j] !== undefined ? dpTable[i][j] : '';
+
+      const td = makeCell(val !== '' ? `${val}` : '');
+
+      if (isActive && dpPhase !== 'done') {
+        td.style.background = 'rgba(245,158,11,0.35)';
+        td.style.color = '#fbbf24';
+        td.style.fontWeight = 'bold';
+        td.style.boxShadow = '0 0 0 2px #f59e0b inset, 0 0 12px rgba(245,158,11,0.4)';
+      } else if (isBacktrack) {
+        td.style.background = 'rgba(6,182,212,0.2)';
+        td.style.color = '#22d3ee';
+        td.style.fontWeight = 'bold';
+        td.style.boxShadow = '0 0 0 1.5px rgba(6,182,212,0.5) inset';
+      } else if (isBase) {
+        td.style.background = 'rgba(30,41,59,0.5)';
+        td.style.color = '#64748b';
+      } else if (val !== '') {
+        td.style.background = 'rgba(15,23,42,0.6)';
+        td.style.color = '#94a3b8';
+      } else {
+        td.style.background = 'rgba(9,13,22,0.4)';
+        td.style.color = '#1e293b';
+      }
+
+      tr.appendChild(td);
+    }
+    tableEl.appendChild(tr);
+  }
+
+  wrapper.appendChild(tableEl);
+
+  // Result footer
+  if (dpPhase === 'done') {
+    const footer = document.createElement('div');
+    footer.className = 'text-xs font-technical font-bold text-emerald-400 mt-1 px-4 py-2 bg-emerald-900/20 border border-emerald-500/30 rounded';
+    footer.textContent = snap.description;
+    wrapper.appendChild(footer);
+  }
+
+  barsContainer.appendChild(wrapper);
+}
+
 function renderBars(
+
   arr,
   highlights,
   pointers,
@@ -535,7 +683,16 @@ function renderBars(
 ) {
   barsContainer.innerHTML = '';
 
+  if (category === 'DP') {
+    barsContainer.className = 'w-full h-full overflow-auto p-3 flex flex-col items-center justify-start';
+    const snap = snapshots[currentIndex];
+    if (!snap || !snap.dpTable) return;
+    renderDPTable(snap);
+    return;
+  }
+
   if (category === 'Tree') {
+
     barsContainer.className = 'w-full h-full flex items-center justify-center relative';
     
     // Check if SVG already exists inside barsContainer
@@ -744,6 +901,109 @@ function renderBars(
       mainRow.appendChild(col);
     });
     barsContainer.appendChild(mainRow);
+
+    // Render Heap tree overlay if current algorithm is Heap Sort
+    if (currentAlgorithm && currentAlgorithm.name === 'Heap Sort') {
+      const heapRow = document.createElement('div');
+      heapRow.className = 'w-full mt-4 border-t border-slate-900 pt-3 flex flex-col gap-2';
+
+      const title = document.createElement('div');
+      title.className = 'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-1 px-1';
+      title.textContent = 'Hierarchical Max-Heap Binary Tree Overlay';
+      heapRow.appendChild(title);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '150');
+      svg.setAttribute('viewBox', '0 0 600 150');
+      svg.className = 'w-full block bg-slate-950/20 border border-slate-900/60 rounded p-1';
+
+      // Define default node gradients
+      svg.innerHTML = `
+        <defs>
+          <radialGradient id="heap-node-gradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#22d3ee" />
+            <stop offset="100%" stop-color="#0891b2" />
+          </radialGradient>
+          <radialGradient id="heap-highlight-gradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#fbbf24" />
+            <stop offset="100%" stop-color="#b45309" />
+          </radialGradient>
+        </defs>
+      `;
+
+      const N = arr.length;
+      const coords = [];
+      function solve(idx, x, y, dx) {
+        if (idx >= N) return;
+        coords[idx] = { x, y };
+        solve(2 * idx + 1, x - dx, y + 32, dx * 0.5);
+        solve(2 * idx + 2, x + dx, y + 32, dx * 0.5);
+      }
+      solve(0, 300, 20, 130);
+
+      // Draw edges
+      for (let i = 0; i < N; i++) {
+        const pNode = coords[i];
+        if (!pNode) continue;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+        [left, right].forEach((childIdx) => {
+          if (childIdx < N && coords[childIdx]) {
+            const childNode = coords[childIdx];
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', pNode.x);
+            line.setAttribute('y1', pNode.y);
+            line.setAttribute('x2', childNode.x);
+            line.setAttribute('y2', childNode.y);
+            line.setAttribute('stroke', '#1e293b');
+            line.setAttribute('stroke-width', '1.8');
+            svg.appendChild(line);
+          }
+        });
+      }
+
+      // Draw vertices
+      for (let i = 0; i < N; i++) {
+        const pNode = coords[i];
+        if (!pNode) continue;
+
+        const isHighlight = highlights.includes(i);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pNode.x);
+        circle.setAttribute('cy', pNode.y);
+        circle.setAttribute('r', '12');
+        circle.setAttribute('fill', isHighlight ? 'url(#heap-highlight-gradient)' : 'url(#heap-node-gradient)');
+        circle.setAttribute('stroke', isHighlight ? '#f59e0b' : '#06b6d4');
+        circle.setAttribute('stroke-width', '1.8');
+        svg.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', pNode.x);
+        text.setAttribute('y', pNode.y);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '9px');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('font-weight', 'bold');
+        text.textContent = arr[i];
+        svg.appendChild(text);
+
+        // Small index label
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', pNode.x + 13);
+        label.setAttribute('y', pNode.y - 8);
+        label.setAttribute('fill', '#475569');
+        label.setAttribute('font-size', '7px');
+        label.setAttribute('font-family', 'monospace');
+        label.textContent = i;
+        svg.appendChild(label);
+      }
+
+      heapRow.appendChild(svg);
+      barsContainer.appendChild(heapRow);
+    }
 
     // Render digit buckets if present in the snapshot
     const snapshot = snapshots[currentIndex];
@@ -1703,6 +1963,14 @@ function bindEvents() {
     });
   }
 
+  // Change event on select-dp-mode dropdown
+  const selectDpMode = document.getElementById('select-dp-mode');
+  if (selectDpMode) {
+    selectDpMode.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
+    });
+  }
+
   // Change event on select-offline-sandbox dropdown
   if (selectOfflineSandbox) {
     selectOfflineSandbox.addEventListener('change', async () => {
@@ -2010,7 +2278,7 @@ function bindEvents() {
         const storedTheme = localStorage.getItem('algovisual_editor_theme') || 'cyberpunk';
         const editorWrap = document.getElementById('sandbox-editor-wrap');
         if (editorWrap) {
-          editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+          editorWrap.className = `flex-1 relative overflow-hidden flex theme-${storedTheme}`;
         }
 
         // Populate textarea with current algorithm's generator function code
@@ -2034,7 +2302,7 @@ function bindEvents() {
     selectEditorTheme.value = storedTheme;
     const editorWrap = document.getElementById('sandbox-editor-wrap');
     if (editorWrap) {
-      editorWrap.className = `flex-1 relative overflow-hidden theme-${storedTheme}`;
+      editorWrap.className = `flex-1 relative overflow-hidden flex theme-${storedTheme}`;
     }
 
     selectEditorTheme.addEventListener('change', (e) => {
@@ -2042,13 +2310,27 @@ function bindEvents() {
       localStorage.setItem('algovisual_editor_theme', themeVal);
       const wrap = document.getElementById('sandbox-editor-wrap');
       if (wrap) {
-        wrap.className = `flex-1 relative overflow-hidden theme-${themeVal}`;
+        wrap.className = `flex-1 relative overflow-hidden flex theme-${themeVal}`;
       }
       appendConsoleLog(`[EDITOR] Switched sandbox theme to ${themeVal.toUpperCase()}`);
     });
   }
 
   // ── Syntax Highlighter ──────────────────────────────────────────────────
+  // ── Syntax Highlighter ──────────────────────────────────────────────────
+  function updateSandboxGutter() {
+    const gutter = document.getElementById('sandbox-gutter');
+    if (!gutter || !sandboxTextarea) return;
+    const linesCount = sandboxTextarea.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= linesCount; i++) {
+      const isBreakpoint = activeBreakpoints.has(i);
+      html += `<div class="gutter-line-num${isBreakpoint ? ' bp-active' : ''}" data-line="${i}">${i}</div>`;
+    }
+    gutter.innerHTML = html;
+    gutter.scrollTop = sandboxTextarea.scrollTop;
+  }
+
   function syncHighlight() {
     const highlightEl = document.getElementById('sandbox-highlight');
     if (!sandboxTextarea || !highlightEl) return;
@@ -2072,12 +2354,51 @@ function bindEvents() {
     // Mirror scroll
     highlightEl.scrollTop = sandboxTextarea.scrollTop;
     highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+    updateSandboxGutter();
   }
 
   if (sandboxTextarea) {
-    sandboxTextarea.addEventListener('input', syncHighlight);
-    sandboxTextarea.addEventListener('scroll', syncHighlight);
+    sandboxTextarea.addEventListener('input', () => {
+      syncHighlight();
+      updateSandboxGutter();
+    });
+    sandboxTextarea.addEventListener('scroll', () => {
+      const highlightEl = document.getElementById('sandbox-highlight');
+      if (highlightEl) {
+        highlightEl.scrollTop = sandboxTextarea.scrollTop;
+        highlightEl.scrollLeft = sandboxTextarea.scrollLeft;
+      }
+      const gutter = document.getElementById('sandbox-gutter');
+      if (gutter) {
+        gutter.scrollTop = sandboxTextarea.scrollTop;
+      }
+    });
     sandboxTextarea.addEventListener('keydown', syncHighlight);
+  }
+
+  const sandboxGutter = document.getElementById('sandbox-gutter');
+  if (sandboxGutter) {
+    sandboxGutter.addEventListener('click', (e) => {
+      const lineNumDiv = e.target.closest('.gutter-line-num');
+      if (!lineNumDiv) return;
+      const lineNum = parseInt(lineNumDiv.dataset.line, 10);
+      if (isNaN(lineNum)) return;
+
+      if (activeBreakpoints.has(lineNum)) {
+        activeBreakpoints.delete(lineNum);
+        appendConsoleLog(`[DEBUGGER] Removed breakpoint on line ${lineNum}`);
+      } else {
+        activeBreakpoints.add(lineNum);
+        appendConsoleLog(`[DEBUGGER] Set breakpoint on line ${lineNum}`);
+      }
+      updateSandboxGutter();
+      const textActiveBp = document.getElementById('text-active-breakpoints');
+      if (textActiveBp) {
+        textActiveBp.textContent = activeBreakpoints.size > 0
+          ? Array.from(activeBreakpoints).sort((a, b) => a - b).join(', ')
+          : 'None';
+      }
+    });
   }
 
   function transpileOrGuard(code) {

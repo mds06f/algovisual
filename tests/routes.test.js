@@ -111,4 +111,11 @@ describe('AlgoVisual Routes', () => {
     expect(res.text).toContain('window.ROOM_ID = "ABCDEF"');
     expect(res.text).toContain("initPlayer('bubbleSort')");
   });
+
+  test('GET /graph-editor should load the interactive graph editor page successfully', async () => {
+    const res = await request(app).get('/graph-editor');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Graph Editor');
+    expect(res.text).toContain('graph-editor-canvas');
+  });
 });
