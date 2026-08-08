@@ -713,6 +713,46 @@ function renderBars(
     });
     barsContainer.appendChild(mainRow);
 
+    // Render digit buckets if present in the snapshot
+    const snapshot = snapshots[currentIndex];
+    if (snapshot && snapshot.buckets) {
+      const bucketsRow = document.createElement('div');
+      bucketsRow.className = 'w-full mt-4 border-t border-slate-900 pt-3';
+      
+      const title = document.createElement('div');
+      title.className = 'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-2 px-1';
+      title.textContent = 'Digit Buckets (0 - 9)';
+      bucketsRow.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-10 gap-2';
+
+      snapshot.buckets.forEach((bucketElements, digit) => {
+        const bucketCol = document.createElement('div');
+        bucketCol.className = 'bg-slate-950/60 border border-slate-900 rounded p-1 flex flex-col items-center min-h-[60px] relative justify-end';
+        
+        const label = document.createElement('span');
+        label.className = 'text-[9px] font-bold text-cyan-400 font-mono mt-1 select-none';
+        label.textContent = digit;
+
+        const contents = document.createElement('div');
+        contents.className = 'flex flex-col gap-1 w-full items-center mb-1';
+        bucketElements.forEach(val => {
+          const item = document.createElement('span');
+          item.className = 'text-[9px] bg-slate-900 border border-slate-800 text-slate-200 px-1 py-0.5 rounded font-mono font-bold w-full text-center select-none';
+          item.textContent = val;
+          contents.appendChild(item);
+        });
+
+        bucketCol.appendChild(contents);
+        bucketCol.appendChild(label);
+        grid.appendChild(bucketCol);
+      });
+
+      bucketsRow.appendChild(grid);
+      barsContainer.appendChild(bucketsRow);
+    }
+
     // Auxiliary split sub-array canvas (Merge Sort only)
     if (auxLeft && auxRight && auxLeftStart >= 0) {
       const auxRow = document.createElement('div');

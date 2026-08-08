@@ -32,6 +32,7 @@ const STATIC_ASSETS = [
   '/algorithms/mergeSort.js',
   '/algorithms/minMaxFinder.js',
   '/algorithms/quickSort.js',
+  '/algorithms/radixSort.js',
   '/algorithms/reverseArray.js',
   '/algorithms/selectionSort.js',
   '/algorithms/stackQueue.js'
