@@ -25,6 +25,10 @@ app.get('/compare', (req, res) => {
   res.render('compare', { algoA, algoB });
 });
 
+app.get('/graph-editor', (req, res) => {
+  res.render('graphEditor');
+});
+
 app.get('/dual', (req, res) => {
   const algoA = req.query.algoA || 'bubbleSort';
   const algoB = req.query.algoB || 'insertionSort';

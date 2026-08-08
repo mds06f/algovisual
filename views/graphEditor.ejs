@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graph Editor – AlgoVisual</title>
+  <meta name="description" content="Interactive canvas-based graph builder – place vertices, draw weighted edges, and run pathfinding algorithms on your custom graph." />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-[#060a12] text-slate-200 min-h-screen flex flex-col font-sans">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <header class="border-b border-slate-900 bg-[#060a12]/95 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-[#00e1d9] font-bold font-technical text-sm uppercase tracking-widest hover:opacity-80 transition">AlgoVisual</a>
+        <span class="text-slate-700">›</span>
+        <span class="text-slate-400 text-xs font-technical uppercase tracking-wider">Graph Editor</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/visualizer?algo=dijkstra" class="tech-btn text-[10px] px-3 py-1.5 rounded font-technical font-bold uppercase">Dijkstra Visualizer</a>
+        <a href="/visualizer?algo=graphOps" class="tech-btn text-[10px] px-3 py-1.5 rounded font-technical font-bold uppercase">Graph BFS/DFS</a>
+        <a href="/" class="text-xs text-slate-500 hover:text-slate-300 transition font-technical">← Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ─────────────────────────────────────────────────────────── -->
+  <main class="flex-1 flex flex-col lg:flex-row gap-0 max-w-screen-xl mx-auto w-full px-4 py-4 gap-4">
+
+    <!-- ── Left Sidebar: Tools & Properties ────────────────────────────────── -->
+    <aside class="w-full lg:w-64 flex flex-col gap-3 shrink-0">
+
+      <!-- Mode Selector -->
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-2">Edit Mode</p>
+        <div class="flex flex-col gap-1.5" id="mode-buttons">
+          <button data-mode="vertex" id="btn-mode-vertex" class="mode-btn active-mode tech-btn text-xs px-3 py-2 rounded font-technical font-bold uppercase flex items-center gap-2">
+            <span>⬤</span> Add Vertex
+          </button>
+          <button data-mode="edge" id="btn-mode-edge" class="mode-btn tech-btn text-xs px-3 py-2 rounded font-technical font-bold uppercase flex items-center gap-2">
+            <span>↔</span> Add Edge
+          </button>
+          <button data-mode="delete" id="btn-mode-delete" class="mode-btn tech-btn text-xs px-3 py-2 rounded font-technical font-bold uppercase flex items-center gap-2">
+            <span>✕</span> Delete
+          </button>
+          <button data-mode="pan" id="btn-mode-pan" class="mode-btn tech-btn text-xs px-3 py-2 rounded font-technical font-bold uppercase flex items-center gap-2">
+            <span>✋</span> Pan/Drag
+          </button>
+        </div>
+      </div>
+
+      <!-- Graph Type -->
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-2">Graph Type</p>
+        <div class="flex flex-col gap-1.5">
+          <label class="flex items-center gap-2 text-xs font-technical text-slate-300 cursor-pointer">
+            <input type="radio" name="graph-type" id="radio-undirected" value="undirected" checked class="accent-cyan-400"> Undirected
+          </label>
+          <label class="flex items-center gap-2 text-xs font-technical text-slate-300 cursor-pointer">
+            <input type="radio" name="graph-type" id="radio-directed" value="directed" class="accent-cyan-400"> Directed
+          </label>
+          <label class="flex items-center gap-2 text-xs font-technical text-slate-300 cursor-pointer">
+            <input type="checkbox" id="checkbox-weighted" checked class="accent-cyan-400"> Weighted Edges
+          </label>
+        </div>
+      </div>
+
+      <!-- Stats Panel -->
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-2">Graph Stats</p>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="text-center">
+            <div id="stat-vertices" class="text-lg font-bold font-technical text-[#00e1d9]">0</div>
+            <div class="text-[9px] text-slate-500 uppercase font-technical">Vertices</div>
+          </div>
+          <div class="text-center">
+            <div id="stat-edges" class="text-lg font-bold font-technical text-[#00e1d9]">0</div>
+            <div class="text-[9px] text-slate-500 uppercase font-technical">Edges</div>
+          </div>
+        </div>
+        <div class="mt-2 pt-2 border-t border-slate-900">
+          <div id="stat-density" class="text-[10px] text-slate-400 font-technical">Density: 0.00</div>
+          <div id="stat-connected" class="text-[10px] text-slate-400 font-technical mt-0.5">Connected: —</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3 flex flex-col gap-2">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-1">Actions</p>
+        <button id="btn-clear" class="tech-btn text-[10px] px-3 py-2 rounded font-bold uppercase font-technical w-full">🗑 Clear Graph</button>
+        <button id="btn-sample" class="tech-btn text-[10px] px-3 py-2 rounded font-bold uppercase font-technical w-full">⚡ Load Sample</button>
+        <button id="btn-export-json" class="tech-btn text-[10px] px-3 py-2 rounded font-bold uppercase font-technical w-full">↓ Export JSON</button>
+        <label class="tech-btn text-[10px] px-3 py-2 rounded font-bold uppercase font-technical w-full text-center cursor-pointer">
+          ↑ Import JSON
+          <input type="file" id="input-import-json" accept=".json" class="hidden">
+        </label>
+      </div>
+
+      <!-- Run Algorithm -->
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3 flex flex-col gap-2">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-1">Run Algorithm</p>
+        <select id="select-algo" class="tech-input text-xs bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 font-technical text-slate-200 w-full">
+          <option value="dijkstra">Dijkstra (SSSP)</option>
+          <option value="bfs">BFS Traversal</option>
+          <option value="dfs">DFS Traversal</option>
+        </select>
+        <select id="select-start-node" class="tech-input text-xs bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 font-technical text-slate-200 w-full">
+          <option value="">— Select Start Node —</option>
+        </select>
+        <button id="btn-run" class="bg-[#00e1d9] text-[#060a12] text-[10px] px-3 py-2 rounded font-bold uppercase font-technical w-full hover:bg-[#00bfb8] transition">▶ Visualize</button>
+      </div>
+
+    </aside>
+
+    <!-- ── Canvas Area ──────────────────────────────────────────────────────── -->
+    <div class="flex-1 flex flex-col gap-3 min-w-0">
+
+      <!-- Status bar -->
+      <div class="flex items-center justify-between bg-slate-950/60 border border-slate-900 rounded px-3 py-1.5">
+        <span id="status-bar" class="text-[10px] font-technical text-[#00e1d9]">Mode: Add Vertex — Click on canvas to place a vertex</span>
+        <div class="flex items-center gap-2">
+          <span id="edge-hint" class="text-[10px] font-technical text-slate-500 hidden">Click a source node, then a target node to draw edge</span>
+          <button id="btn-undo" class="tech-btn text-[9px] px-2 py-1 rounded font-bold uppercase font-technical">↩ Undo</button>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="relative flex-1 min-h-[460px] bg-slate-950/30 border border-slate-900 rounded overflow-hidden" id="canvas-wrapper">
+        <canvas id="graph-editor-canvas" class="absolute inset-0 w-full h-full block cursor-crosshair" style="touch-action:none"></canvas>
+
+        <!-- Grid overlay -->
+        <div class="absolute inset-0 pointer-events-none" style="background-image: radial-gradient(circle, rgba(0,225,217,0.08) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+        <!-- Empty state -->
+        <div id="canvas-empty-hint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+          <div class="text-slate-700 text-5xl mb-3">⬡</div>
+          <p class="text-slate-600 text-sm font-technical">Click anywhere to place your first vertex</p>
+          <p class="text-slate-700 text-xs font-technical mt-1">or load a sample graph to get started</p>
+        </div>
+      </div>
+
+      <!-- Edge Weight Modal (hidden by default) -->
+      <div id="weight-modal" class="hidden absolute inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm" style="position:fixed">
+        <div class="bg-[#0c1220] border border-[#00e1d9]/30 rounded-lg p-5 w-72 shadow-2xl shadow-cyan-900/20">
+          <h3 class="text-sm font-bold text-[#00e1d9] font-technical uppercase mb-3">Set Edge Weight</h3>
+          <p id="weight-modal-desc" class="text-xs text-slate-400 font-technical mb-3">Edge: — → —</p>
+          <input type="number" id="input-weight" class="tech-input w-full text-sm bg-[#060a12] border border-slate-700 rounded px-3 py-2 font-technical text-slate-200 mb-3 focus:border-[#00e1d9]/60 outline-none" value="1" min="1" max="999" />
+          <div class="flex gap-2">
+            <button id="btn-confirm-weight" class="flex-1 bg-[#00e1d9] text-[#060a12] text-xs px-3 py-2 rounded font-bold uppercase font-technical hover:bg-[#00bfb8] transition">Confirm</button>
+            <button id="btn-cancel-weight" class="flex-1 tech-btn text-xs px-3 py-2 rounded font-bold uppercase font-technical">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Right Panel: Adjacency List ──────────────────────────────────────── -->
+    <aside class="w-full lg:w-56 flex flex-col gap-3 shrink-0">
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3 flex-1">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-2">Adjacency List</p>
+        <div id="adjacency-list" class="text-[10px] font-technical text-slate-400 space-y-1 max-h-[500px] overflow-y-auto pr-1">
+          <p class="text-slate-700 italic">Empty graph</p>
+        </div>
+      </div>
+      <div class="bg-slate-950/60 border border-slate-900 rounded p-3">
+        <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold font-technical mb-2">Legend</p>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-cyan-400"></div><span class="text-[10px] font-technical text-slate-400">Default vertex</span></div>
+          <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-400"></div><span class="text-[10px] font-technical text-slate-400">Selected/Source</span></div>
+          <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-[10px] font-technical text-slate-400">Hover (delete mode)</span></div>
+          <div class="flex items-center gap-2"><div class="w-3 h-1 rounded bg-cyan-500"></div><span class="text-[10px] font-technical text-slate-400">Edge</span></div>
+          <div class="flex items-center gap-2"><div class="w-3 h-1 rounded bg-amber-400"></div><span class="text-[10px] font-technical text-slate-400">Weighted edge</span></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script type="module" src="/js/graphEditor.js"></script>
+
+  <style>
+    .mode-btn { transition: all 0.15s; text-align: left; }
+    .active-mode { background: rgba(0, 225, 217, 0.15) !important; border-color: rgba(0, 225, 217, 0.5) !important; color: #00e1d9 !important; }
+    .tech-input { transition: border-color 0.2s, box-shadow 0.2s; }
+    .tech-input:focus { border-color: rgba(0,225,217,0.4); box-shadow: 0 0 8px rgba(0,225,217,0.12); }
+  </style>
+</body>
+</html>
