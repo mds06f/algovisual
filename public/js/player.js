@@ -745,6 +745,109 @@ function renderBars(
     });
     barsContainer.appendChild(mainRow);
 
+    // Render Heap tree overlay if current algorithm is Heap Sort
+    if (currentAlgorithm && currentAlgorithm.name === 'Heap Sort') {
+      const heapRow = document.createElement('div');
+      heapRow.className = 'w-full mt-4 border-t border-slate-900 pt-3 flex flex-col gap-2';
+
+      const title = document.createElement('div');
+      title.className = 'text-[9px] text-slate-500 font-technical uppercase tracking-wider mb-1 px-1';
+      title.textContent = 'Hierarchical Max-Heap Binary Tree Overlay';
+      heapRow.appendChild(title);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '150');
+      svg.setAttribute('viewBox', '0 0 600 150');
+      svg.className = 'w-full block bg-slate-950/20 border border-slate-900/60 rounded p-1';
+
+      // Define default node gradients
+      svg.innerHTML = `
+        <defs>
+          <radialGradient id="heap-node-gradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#22d3ee" />
+            <stop offset="100%" stop-color="#0891b2" />
+          </radialGradient>
+          <radialGradient id="heap-highlight-gradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#fbbf24" />
+            <stop offset="100%" stop-color="#b45309" />
+          </radialGradient>
+        </defs>
+      `;
+
+      const N = arr.length;
+      const coords = [];
+      function solve(idx, x, y, dx) {
+        if (idx >= N) return;
+        coords[idx] = { x, y };
+        solve(2 * idx + 1, x - dx, y + 32, dx * 0.5);
+        solve(2 * idx + 2, x + dx, y + 32, dx * 0.5);
+      }
+      solve(0, 300, 20, 130);
+
+      // Draw edges
+      for (let i = 0; i < N; i++) {
+        const pNode = coords[i];
+        if (!pNode) continue;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+        [left, right].forEach((childIdx) => {
+          if (childIdx < N && coords[childIdx]) {
+            const childNode = coords[childIdx];
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', pNode.x);
+            line.setAttribute('y1', pNode.y);
+            line.setAttribute('x2', childNode.x);
+            line.setAttribute('y2', childNode.y);
+            line.setAttribute('stroke', '#1e293b');
+            line.setAttribute('stroke-width', '1.8');
+            svg.appendChild(line);
+          }
+        });
+      }
+
+      // Draw vertices
+      for (let i = 0; i < N; i++) {
+        const pNode = coords[i];
+        if (!pNode) continue;
+
+        const isHighlight = highlights.includes(i);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pNode.x);
+        circle.setAttribute('cy', pNode.y);
+        circle.setAttribute('r', '12');
+        circle.setAttribute('fill', isHighlight ? 'url(#heap-highlight-gradient)' : 'url(#heap-node-gradient)');
+        circle.setAttribute('stroke', isHighlight ? '#f59e0b' : '#06b6d4');
+        circle.setAttribute('stroke-width', '1.8');
+        svg.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', pNode.x);
+        text.setAttribute('y', pNode.y);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '9px');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('font-weight', 'bold');
+        text.textContent = arr[i];
+        svg.appendChild(text);
+
+        // Small index label
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', pNode.x + 13);
+        label.setAttribute('y', pNode.y - 8);
+        label.setAttribute('fill', '#475569');
+        label.setAttribute('font-size', '7px');
+        label.setAttribute('font-family', 'monospace');
+        label.textContent = i;
+        svg.appendChild(label);
+      }
+
+      heapRow.appendChild(svg);
+      barsContainer.appendChild(heapRow);
+    }
+
     // Render digit buckets if present in the snapshot
     const snapshot = snapshots[currentIndex];
     if (snapshot && snapshot.buckets) {
