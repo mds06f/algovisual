@@ -31,6 +31,7 @@ let nextBtn;
 let btnLoop;
 let btnDirectionToggle;
 let directionToggleIcon;
+let btnTtsRead;
 let speedSlider;
 let speedValueText;
 let customInput;
@@ -99,6 +100,7 @@ export async function initPlayer(algoName) {
     btnLoop = document.getElementById('btn-loop');
     btnDirectionToggle = document.getElementById('btn-direction-toggle');
     directionToggleIcon = document.getElementById('direction-toggle-icon');
+    btnTtsRead = document.getElementById('btn-tts-read');
     speedSlider = document.getElementById('slider-speed');
     speedValueText = document.getElementById('text-speed');
     customInput = document.getElementById('input-custom');
@@ -1035,6 +1037,22 @@ function bindEvents() {
       }
       btnDirectionToggle.classList.toggle('tech-btn-primary', playbackDirection === 'backward');
       appendConsoleLog(`[PLAYBACK] Auto-play direction changed to ${playbackDirection.toUpperCase()}`);
+    });
+  }
+  if (btnTtsRead) {
+    btnTtsRead.addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        if (narrativeText && narrativeText.textContent) {
+          const utterance = new SpeechSynthesisUtterance(narrativeText.textContent);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          window.speechSynthesis.speak(utterance);
+          appendConsoleLog(`[TTS] Speaking description: "${narrativeText.textContent.slice(0, 30)}..."`);
+        }
+      } else {
+        alert('Text-to-Speech is not supported in this browser.');
+      }
     });
   }
 
