@@ -166,9 +166,16 @@ function drawLoop() {
       ? currentSnapshot.edgesState[edgeKey]
       : 'default';
 
+    const dx = n2.x - n1.x;
+    const dy = n2.y - n1.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nodeRadius = 18;
+    const tx = n2.x - (dx / dist) * nodeRadius;
+    const ty = n2.y - (dy / dist) * nodeRadius;
+
     ctx.beginPath();
     ctx.moveTo(n1.x, n1.y);
-    ctx.lineTo(n2.x, n2.y);
+    ctx.lineTo(tx, ty);
 
     if (state === 'active') {
       ctx.strokeStyle = '#f59e0b'; // Amber
@@ -181,6 +188,19 @@ function drawLoop() {
       ctx.lineWidth = 1.8;
     }
     ctx.stroke();
+
+    const isDirected = (currentSnapshot && currentSnapshot.isDirected) || (document.getElementById('select-graph-type')?.value === 'directed');
+    if (isDirected) {
+      const angle = Math.atan2(dy, dx);
+      const arrowSize = 7;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(tx - arrowSize * Math.cos(angle - Math.PI / 6), ty - arrowSize * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(tx - arrowSize * Math.cos(angle + Math.PI / 6), ty - arrowSize * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.fill();
+    }
 
     // Draw Edge Weight labels
     const mx = (n1.x + n2.x) / 2;

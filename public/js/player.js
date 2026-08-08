@@ -375,9 +375,11 @@ function resetPlayroom(array, target) {
   if (!finalTarget && currentAlgorithm) {
     if (currentAlgorithm.category === 'Graph') {
       if (selectGraphAlgo && selectGraphStart) {
+        const selectGraphType = document.getElementById('select-graph-type');
         finalTarget = {
           algoType: selectGraphAlgo.value,
-          startNode: selectGraphStart.value
+          startNode: selectGraphStart.value,
+          graphType: selectGraphType ? selectGraphType.value : 'undirected'
         };
       }
     } else if (currentAlgorithm.category === 'Tree') {
@@ -1629,6 +1631,13 @@ function bindEvents() {
   // Change event on select-graph-start dropdown
   if (selectGraphStart) {
     selectGraphStart.addEventListener('change', () => {
+      resetPlayroom(defaultArray);
+    });
+  }
+
+  const selectGraphType = document.getElementById('select-graph-type');
+  if (selectGraphType) {
+    selectGraphType.addEventListener('change', () => {
       resetPlayroom(defaultArray);
     });
   }
